@@ -1,7 +1,158 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@using Tidawnloader.Services
+@inject Downloader Downloader
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Tidawnloader</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center px-4">
 
-Welcome to your new app.
+    <div class="w-full max-w-xl space-y-8">
+
+        <h1 class="text-center text-3xl font-semibold">Download from spotify</h1>
+
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4 shadow-lg">
+
+            <label class="text-sm text-neutral-400">Track URL</label>
+
+            <div class="flex gap-2">
+                <input
+                    class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-700 disabled:opacity-50"
+                    @bind="SpotifyUrl"
+                    @bind:event="oninput"
+                    @onkeydown="OnKeyDown"
+                    type="text"
+                    placeholder="https://open.spotify.com/track/…"
+                    disabled="@IsRunning"
+                />
+
+                <button
+                    class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    @onclick="StartDownload"
+                    disabled="@(IsRunning || string.IsNullOrWhiteSpace(SpotifyUrl))"
+                >
+                    @(IsRunning ? "…" : "Get")
+                </button>
+            </div>
+
+            @if (State.Status != DownloadStatus.Idle)
+            {
+                <div class="pt-4 space-y-3 border-t border-neutral-800">
+
+                    <p class="text-sm text-neutral-400">
+                        @StatusLabel
+                    </p>
+
+                    @if (State.Status == DownloadStatus.Downloading)
+                    {
+                        <div class="space-y-2">
+
+                            <div class="h-2 bg-neutral-800 rounded-full overflow-hidden">
+                                <div
+                                    class="h-full bg-white transition-all duration-200"
+                                    style="width: @($"{State.ProgressPercent:F0}%")">
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-neutral-400">
+                                @State.Message
+                            </p>
+
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(State.Message))
+                    {
+                        <p class="text-sm text-neutral-300">
+                            @State.Message
+                        </p>
+                    }
+
+                    @if (!string.IsNullOrEmpty(State.Error))
+                    {
+                        <p class="text-sm text-red-400">
+                            @State.Error
+                        </p>
+                    }
+
+                    @if (State.Status == DownloadStatus.Done)
+                    {
+                        <div class="flex items-center justify-between pt-2 text-sm">
+
+                            <p class="text-neutral-400 truncate">
+                                @State.FilePath
+                            </p>
+
+                            <button
+                                class="text-white hover:underline"
+                                @onclick="Reset">
+                                Download another →
+                            </button>
+
+                        </div>
+                    }
+
+                    @if (State.Status == DownloadStatus.Failed)
+                    {
+                        <button
+                            class="text-white hover:underline text-sm"
+                            @onclick="Reset">
+                            Try again →
+                        </button>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+</div>
+
+@code {
+    private string SpotifyUrl { get; set; } = string.Empty;
+    private DownloadState State { get; set; } = new();
+    private CancellationTokenSource? _cts;
+
+    private bool IsRunning => State.Status is
+        DownloadStatus.Resolving or
+        DownloadStatus.GettingStream or
+        DownloadStatus.Downloading;
+
+    private string StatusLabel => State.Status switch
+    {
+        DownloadStatus.Resolving     => "Resolving",
+        DownloadStatus.GettingStream => "Getting stream",
+        DownloadStatus.Downloading   => "Downloading",
+        DownloadStatus.Done          => "Done",
+        DownloadStatus.Failed        => "Failed",
+        _                            => "Starting"
+    };
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !IsRunning && !string.IsNullOrWhiteSpace(SpotifyUrl))
+            await StartDownload();
+    }
+
+    private async Task StartDownload()
+    {
+        if (IsRunning || string.IsNullOrWhiteSpace(SpotifyUrl)) return;
+
+        _cts = new CancellationTokenSource();
+
+        var progress = new Progress<DownloadState>(state =>
+        {
+            State = state;
+            InvokeAsync(StateHasChanged);
+        });
+
+        await Downloader.DownloadAsync(SpotifyUrl.Trim(), progress, _cts.Token);
+    }
+
+    private void Reset()
+    {
+        _cts?.Cancel();
+        State = new DownloadState();
+        SpotifyUrl = string.Empty;
+    }
+}
