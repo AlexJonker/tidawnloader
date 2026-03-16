@@ -7,3 +7,14 @@
   <br>
   Self-host a webui to download music for your jellyfin/navidrome server.
 </p>
+
+# Run the site.
+Install node modules
+```bash
+npm i
+```
+
+Run the site
+```bash
+npm run dev
+```

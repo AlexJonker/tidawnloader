@@ -1,0 +1,8 @@
+bin/
+obj/
+cache/
+
+*.sln
+
+node_modules/
+tailwind.css

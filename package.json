@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@tailwindcss/cli": "^4.2.1",
+    "concurrently": "^9.2.1"
+  },
+  "scripts": {
+    "dev": "concurrently --raw \"npm run watch:css\" \"dotnet watch\"",
+    "build:css": "npx @tailwindcss/cli -i wwwroot/app.css -o wwwroot/tailwind.css",
+    "build:minified:css": "npx @tailwindcss/cli -i wwwroot/app.css -o wwwroot/tailwind.css --minify",
+    "watch:css": "npx @tailwindcss/cli -i wwwroot/app.css -o wwwroot/tailwind.css --watch"
+  }
+}
