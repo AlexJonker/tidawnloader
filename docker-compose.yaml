@@ -1,0 +1,11 @@
+services:
+  tidawnloader:
+    image: ghcr.io/alexjonker/tidawnloader:main
+    container_name: tidawnloader
+    restart: unless-stopped
+    ports:
+      - "4675:8080"
+    volumes:
+      - /DATA/AppData/tidawnloader/Downloads:/Downloads
+    environment:
+      - DownloadPath=/Downloads
