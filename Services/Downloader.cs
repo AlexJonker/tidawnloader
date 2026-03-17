@@ -87,31 +87,13 @@ public class Downloader
         });
 
         var root = await _request.Make($"track?id={trackId}");
-        var streamUrl = ParseStream(root.Value);
+        var data = root.Value.TryGetProperty("data", out var d) ? d : root.Value;
 
-        if (streamUrl is null)
+        string? baseUrl = null;
+
+        if (data.TryGetProperty("manifest", out var manifest) &&
+            data.TryGetProperty("manifestMimeType", out var mime))
         {
-            progress.Report(new DownloadState
-            {
-                Status = DownloadStatus.Failed,
-                Error = "No mirror returned a stream URL"
-            });
-            return;
-        }
-
-        await DownloadTrack(client, streamUrl, trackId, progress);
-    }
-
-    private static string? ParseStream(JsonElement root)
-    {
-        if (root.ValueKind == JsonValueKind.Object)
-        {
-            var data = root.TryGetProperty("data", out var d) ? d : root;
-
-            if (!data.TryGetProperty("manifest", out var manifest) ||
-                !data.TryGetProperty("manifestMimeType", out var mime))
-                return null;
-
             var mimeType = mime.GetString() ?? "";
 
             var manifestJson = Encoding.UTF8.GetString(
@@ -124,18 +106,27 @@ public class Downloader
 
                 if (doc.RootElement.TryGetProperty("urls", out var urls) &&
                     urls.GetArrayLength() > 0)
-                {
-                    return urls[0].GetString();
-                }
+                    baseUrl = urls[0].GetString();
             }
-
-            if (mimeType.Contains("dash", StringComparison.OrdinalIgnoreCase))
+            else if (mimeType.Contains("dash", StringComparison.OrdinalIgnoreCase))
             {
-                return ParseDash(manifestJson);
+                baseUrl = XDocument.Parse(manifestJson)
+                    .Descendants()
+                    .FirstOrDefault(x => x.Name.LocalName == "BaseURL")
+                    ?.Value;
             }
         }
+        if (baseUrl is null)
+        {
+            progress.Report(new DownloadState
+            {
+                Status = DownloadStatus.Failed,
+                Error = "No mirror returned a stream URL"
+            });
+            return;
+        }
 
-        return null;
+        await DownloadTrack(client, baseUrl, trackId, progress);
     }
 
     private async Task DownloadTrack(
@@ -213,16 +204,5 @@ public class Downloader
                 Error = ex.Message
             });
         }
-    }
-
-    private static string? ParseDash(string mpdXml)
-    {
-        var doc = XDocument.Parse(mpdXml);
-
-        var baseUrl = doc.Descendants()
-            .FirstOrDefault(x => x.Name.LocalName == "BaseURL")
-            ?.Value;
-
-        return baseUrl;
     }
 }
