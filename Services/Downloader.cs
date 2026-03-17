@@ -3,6 +3,8 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
+using Tidawnloader.Services;
+
 namespace Tidawnloader.Services;
 
 public enum DownloadStatus
@@ -27,26 +29,18 @@ public class DownloadState
 public class Downloader
 {
     private readonly IHttpClientFactory _http;
+    private readonly Request _request;
     private readonly ILogger<Downloader> _logger;
     private readonly string _downloadPath;
 
-    private static readonly string[] apis =
-    [
-        "https://hifi-one.spotisaver.net",
-        "https://hifi-two.spotisaver.net",
-        "https://eu-central.monochrome.tf",
-        "https://us-west.monochrome.tf",
-        "https://api.monochrome.tf",
-        "https://monochrome-api.samidy.com",
-        "https://tidal.kinoplus.online"
-    ];
-
     public Downloader(
         IHttpClientFactory httpClientFactory,
+        Request request,
         IConfiguration config,
         ILogger<Downloader> logger)
     {
         _http = httpClientFactory;
+        _request = request;
         _logger = logger;
 
         _downloadPath = config["DownloadPath"] ?? "./downloads";
@@ -84,15 +78,16 @@ public class Downloader
             return;
         }
 
-        var trackIdTidal = match.Groups[1].Value;
+        var trackId = match.Groups[1].Value;
 
         progress.Report(new DownloadState
         {
             Status = DownloadStatus.GettingStream,
-            Message = $"Getting stream (id: {trackIdTidal})..."
+            Message = $"Getting stream (id: {trackId})..."
         });
 
-        var (streamUrl, mirror) = await FindStream(client, trackIdTidal);
+        var root = await _request.Make($"track?id={trackId}");
+        var streamUrl = ParseStream(root.Value);
 
         if (streamUrl is null)
         {
@@ -104,40 +99,7 @@ public class Downloader
             return;
         }
 
-        await DownloadTrack(client, streamUrl, trackIdTidal, mirror!, progress);
-    }
-
-    private async Task<(string? url, string? mirror)> FindStream(HttpClient client, string id)
-    {
-        foreach (var mirror in apis)
-        {
-            try
-            {
-                var endpoint = $"{mirror}/track/?id={id}";
-                var resp = await client.GetAsync(endpoint);
-
-                if (!resp.IsSuccessStatusCode)
-                    continue;
-
-                var body = await resp.Content.ReadAsStringAsync();
-
-                using var doc = JsonDocument.Parse(body);
-                var root = doc.RootElement;
-
-                var url = ParseStream(root);
-                if (url != null)
-                    return (url, mirror);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex,
-                    "Mirror {Mirror} failed for track {TrackId}",
-                    mirror, id);
-            }
-
-        }
-
-        return (null, null);
+        await DownloadTrack(client, streamUrl, trackId, progress);
     }
 
     private static string? ParseStream(JsonElement root)
@@ -180,13 +142,12 @@ public class Downloader
         HttpClient client,
         string streamUrl,
         string id,
-        string mirror,
         IProgress<DownloadState> progress)
     {
         progress.Report(new DownloadState
         {
             Status = DownloadStatus.Downloading,
-            Message = $"Downloading from {mirror}..."
+            Message = $"Downloading..."
         });
 
         Directory.CreateDirectory(_downloadPath);
@@ -243,8 +204,8 @@ public class Downloader
             File.Delete(filePath);
 
             _logger.LogError(ex,
-                "Download failed for track {TrackId} from mirror {Mirror}",
-                id, mirror);
+                "Download failed for track {TrackId}",
+                id);
 
             progress.Report(new DownloadState
             {
