@@ -52,7 +52,7 @@ public class Downloader
         _downloadPath = config["DownloadPath"] ?? "./downloads";
     }
 
-    public async Task DownloadAsync(string input, IProgress<DownloadState> progress, CancellationToken ct = default)
+    public async Task DownloadAsync(string input, IProgress<DownloadState> progress)
     {
         var client = _http.CreateClient("Default");
 
@@ -92,7 +92,7 @@ public class Downloader
             Message = $"Getting stream (id: {trackIdTidal})..."
         });
 
-        var (streamUrl, mirror) = await FindStream(client, trackIdTidal, ct);
+        var (streamUrl, mirror) = await FindStream(client, trackIdTidal);
 
         if (streamUrl is null)
         {
@@ -104,22 +104,22 @@ public class Downloader
             return;
         }
 
-        await DownloadTrack(client, streamUrl, trackIdTidal, mirror!, progress, ct);
+        await DownloadTrack(client, streamUrl, trackIdTidal, mirror!, progress);
     }
 
-    private async Task<(string? url, string? mirror)> FindStream(HttpClient client, string id, CancellationToken ct)
+    private async Task<(string? url, string? mirror)> FindStream(HttpClient client, string id)
     {
         foreach (var mirror in apis)
         {
             try
             {
                 var endpoint = $"{mirror}/track/?id={id}";
-                var resp = await client.GetAsync(endpoint, ct);
+                var resp = await client.GetAsync(endpoint);
 
                 if (!resp.IsSuccessStatusCode)
                     continue;
 
-                var body = await resp.Content.ReadAsStringAsync(ct);
+                var body = await resp.Content.ReadAsStringAsync();
 
                 using var doc = JsonDocument.Parse(body);
                 var root = doc.RootElement;
@@ -181,8 +181,7 @@ public class Downloader
         string streamUrl,
         string id,
         string mirror,
-        IProgress<DownloadState> progress,
-        CancellationToken ct)
+        IProgress<DownloadState> progress)
     {
         progress.Report(new DownloadState
         {
@@ -199,24 +198,23 @@ public class Downloader
         {
             using var response = await client.GetAsync(
                 streamUrl,
-                HttpCompletionOption.ResponseHeadersRead,
-                ct
+                HttpCompletionOption.ResponseHeadersRead
             );
 
             response.EnsureSuccessStatusCode();
 
             var total = response.Content.Headers.ContentLength ?? 0;
 
-            await using var input = await response.Content.ReadAsStreamAsync(ct);
+            await using var input = await response.Content.ReadAsStreamAsync();
             await using var output = File.Create(filePath);
 
             var buffer = new byte[81920];
             long downloaded = 0;
 
             int read;
-            while ((read = await input.ReadAsync(buffer, ct)) > 0)
+            while ((read = await input.ReadAsync(buffer)) > 0)
             {
-                await output.WriteAsync(buffer.AsMemory(0, read), ct);
+                await output.WriteAsync(buffer.AsMemory(0, read));
 
                 downloaded += read;
 

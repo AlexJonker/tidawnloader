@@ -111,7 +111,6 @@
 @code {
     private string url { get; set; } = string.Empty;
     private DownloadState State { get; set; } = new();
-    private CancellationTokenSource? _cts;
 
     private bool IsRunning => State.Status is
         DownloadStatus.Resolving or
@@ -138,7 +137,6 @@
     {
         if (IsRunning || string.IsNullOrWhiteSpace(url)) return;
 
-        _cts = new CancellationTokenSource();
 
         var progress = new Progress<DownloadState>(state =>
         {
@@ -146,12 +144,11 @@
             InvokeAsync(StateHasChanged);
         });
 
-        await Downloader.DownloadAsync(url.Trim(), progress, _cts.Token);
+        await Downloader.DownloadAsync(url.Trim(), progress);
     }
 
     private void Reset()
     {
-        _cts?.Cancel();
         State = new DownloadState();
         url = string.Empty;
     }
