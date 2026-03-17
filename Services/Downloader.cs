@@ -52,10 +52,7 @@ public class Downloader
         _downloadPath = config["DownloadPath"] ?? "./downloads";
     }
 
-    public async Task DownloadAsync(
-        string input,
-        IProgress<DownloadState> progress,
-        CancellationToken ct = default)
+    public async Task DownloadAsync(string input, IProgress<DownloadState> progress, CancellationToken ct = default)
     {
         var client = _http.CreateClient("Default");
 
@@ -114,32 +111,30 @@ public class Downloader
     {
         foreach (var mirror in apis)
         {
-            foreach (var quality in new[] { "HI_RES", "LOSSLESS" })
+            try
             {
-                try
-                {
-                    var endpoint = $"{mirror}/track/?id={id}&quality={quality}";
-                    var resp = await client.GetAsync(endpoint, ct);
+                var endpoint = $"{mirror}/track/?id={id}";
+                var resp = await client.GetAsync(endpoint, ct);
 
-                    if (!resp.IsSuccessStatusCode)
-                        continue;
+                if (!resp.IsSuccessStatusCode)
+                    continue;
 
-                    var body = await resp.Content.ReadAsStringAsync(ct);
+                var body = await resp.Content.ReadAsStringAsync(ct);
 
-                    using var doc = JsonDocument.Parse(body);
-                    var root = doc.RootElement;
+                using var doc = JsonDocument.Parse(body);
+                var root = doc.RootElement;
 
-                    var url = ParseStream(root);
-                    if (url != null)
-                        return (url, mirror);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex,
-                        "Mirror {Mirror} failed for track {TrackId} ({Quality})",
-                        mirror, id, quality);
-                }
+                var url = ParseStream(root);
+                if (url != null)
+                    return (url, mirror);
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Mirror {Mirror} failed for track {TrackId}",
+                    mirror, id);
+            }
+
         }
 
         return (null, null);
