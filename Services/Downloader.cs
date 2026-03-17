@@ -49,7 +49,7 @@ public class Downloader
         _http = httpClientFactory;
         _logger = logger;
 
-        _downloadPath = config["DownloadPath"];
+        _downloadPath = config["DownloadPath"] ?? "./downloads";
     }
 
     public async Task DownloadAsync(
