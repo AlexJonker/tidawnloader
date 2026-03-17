@@ -52,37 +52,11 @@ public class Downloader
         _downloadPath = config["DownloadPath"];
     }
 
-    public static string? GetTrackId(string input)
-    {
-        input = input.Trim();
-
-        var uri = Regex.Match(input, @"^spotify:track:([A-Za-z0-9]+)");
-        if (uri.Success)
-            return uri.Groups[1].Value;
-
-        var url = Regex.Match(input, @"spotify\.com/track/([A-Za-z0-9]+)");
-        if (url.Success)
-            return url.Groups[1].Value;
-
-        return null;
-    }
-
     public async Task DownloadAsync(
-        string spotifyUrl,
+        string input,
         IProgress<DownloadState> progress,
         CancellationToken ct = default)
     {
-        var trackId = GetTrackId(spotifyUrl);
-        if (trackId is null)
-        {
-            progress.Report(new DownloadState
-            {
-                Status = DownloadStatus.Failed,
-                Error = "Invalid Spotify track URL"
-            });
-            return;
-        }
-
         var client = _http.CreateClient("Default");
 
         progress.Report(new DownloadState
@@ -91,7 +65,7 @@ public class Downloader
             Message = "Resolving track..."
         });
 
-        var trackUrl = await FindTrack(client, trackId, ct);
+        var trackUrl = input.Trim();
         if (trackUrl is null)
         {
             progress.Report(new DownloadState
@@ -134,32 +108,6 @@ public class Downloader
         }
 
         await DownloadTrack(client, streamUrl, trackIdTidal, mirror!, progress, ct);
-    }
-
-    private async Task<string?> FindTrack(HttpClient client, string spotifyId, CancellationToken ct)
-    {
-        try
-        {
-            var encoded = Uri.EscapeDataString($"https://open.spotify.com/track/{spotifyId}");
-            var url = $"https://api.song.link/v1-alpha.1/links?url={encoded}";
-
-            var resp = await client.GetAsync(url, ct);
-            resp.EnsureSuccessStatusCode();
-
-            using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync(ct));
-
-            var platforms = doc.RootElement.GetProperty("linksByPlatform");
-
-            if (!platforms.TryGetProperty("tidal", out var tidal))
-                return null;
-
-            return tidal.GetProperty("url").GetString();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "song.link lookup failed for {SpotifyId}", spotifyId);
-            return null;
-        }
     }
 
     private async Task<(string? url, string? mirror)> FindStream(HttpClient client, string id, CancellationToken ct)

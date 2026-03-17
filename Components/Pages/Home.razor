@@ -9,7 +9,7 @@
 
     <div class="w-full max-w-xl space-y-8">
 
-        <h1 class="text-center text-3xl font-semibold">Download from spotify</h1>
+        <h1 class="text-center text-3xl font-semibold">Download from tidal</h1>
 
         <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4 shadow-lg">
 
@@ -18,18 +18,18 @@
             <div class="flex gap-2">
                 <input
                     class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-700 disabled:opacity-50"
-                    @bind="SpotifyUrl"
+                    @bind="url"
                     @bind:event="oninput"
                     @onkeydown="OnKeyDown"
                     type="text"
-                    placeholder="https://open.spotify.com/track/…"
+                    placeholder="https://tidal.com/track/..."
                     disabled="@IsRunning"
                 />
 
                 <button
                     class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     @onclick="StartDownload"
-                    disabled="@(IsRunning || string.IsNullOrWhiteSpace(SpotifyUrl))"
+                    disabled="@(IsRunning || string.IsNullOrWhiteSpace(url))"
                 >
                     @(IsRunning ? "…" : "Get")
                 </button>
@@ -109,7 +109,7 @@
 </div>
 
 @code {
-    private string SpotifyUrl { get; set; } = string.Empty;
+    private string url { get; set; } = string.Empty;
     private DownloadState State { get; set; } = new();
     private CancellationTokenSource? _cts;
 
@@ -130,13 +130,13 @@
 
     private async Task OnKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter" && !IsRunning && !string.IsNullOrWhiteSpace(SpotifyUrl))
+        if (e.Key == "Enter" && !IsRunning && !string.IsNullOrWhiteSpace(url))
             await StartDownload();
     }
 
     private async Task StartDownload()
     {
-        if (IsRunning || string.IsNullOrWhiteSpace(SpotifyUrl)) return;
+        if (IsRunning || string.IsNullOrWhiteSpace(url)) return;
 
         _cts = new CancellationTokenSource();
 
@@ -146,13 +146,13 @@
             InvokeAsync(StateHasChanged);
         });
 
-        await Downloader.DownloadAsync(SpotifyUrl.Trim(), progress, _cts.Token);
+        await Downloader.DownloadAsync(url.Trim(), progress, _cts.Token);
     }
 
     private void Reset()
     {
         _cts?.Cancel();
         State = new DownloadState();
-        SpotifyUrl = string.Empty;
+        url = string.Empty;
     }
 }
