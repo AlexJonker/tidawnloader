@@ -35,7 +35,9 @@ public class Request
                 var resp = await _http.CreateClient("Default").GetAsync(url);
 
                 if (!resp.IsSuccessStatusCode)
+                {
                     continue;
+                }
 
                 var body = await resp.Content.ReadAsStringAsync();
 

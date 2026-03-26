@@ -86,8 +86,37 @@ public class Downloader
             Message = $"Getting stream (id: {trackId})..."
         });
 
-        var root = await _request.Make($"track?id={trackId}");
-        var data = root.Value.TryGetProperty("data", out var d) ? d : root.Value;
+        var root = await _request.Make($"track?id={trackId}&quality=LOSSLESS");
+
+        if (root is null)
+        {
+            progress.Report(new DownloadState
+            {
+                Status = DownloadStatus.Failed,
+                Error = "No API response"
+            });
+            return;
+        }
+
+        if (!root.Value.TryGetProperty("data", out var data))
+        {
+            if (root.Value.TryGetProperty("detail", out var detail))
+            {
+                progress.Report(new DownloadState
+                {
+                    Status = DownloadStatus.Failed,
+                    Error = detail.GetString() ?? "API error"
+                });
+                return;
+            }
+
+            progress.Report(new DownloadState
+            {
+                Status = DownloadStatus.Failed,
+                Error = "Invalid API response"
+            });
+            return;
+        }
 
         string? baseUrl = null;
 
@@ -110,12 +139,28 @@ public class Downloader
             }
             else if (mimeType.Contains("dash", StringComparison.OrdinalIgnoreCase))
             {
-                baseUrl = XDocument.Parse(manifestJson)
-                    .Descendants()
-                    .FirstOrDefault(x => x.Name.LocalName == "BaseURL")
-                    ?.Value;
+                var doc = XDocument.Parse(manifestJson);
+                var segmentTemplate = doc.Descendants()
+                    .FirstOrDefault(x => x.Name.LocalName == "SegmentTemplate");
+                
+                if (segmentTemplate != null)
+                {
+                    var mediaAttr = segmentTemplate.Attribute("media")?.Value;
+                    if (!string.IsNullOrEmpty(mediaAttr))
+                    {
+                        baseUrl = mediaAttr;
+                    }
+                }
+                
+                if (baseUrl is null)
+                {
+                    baseUrl = doc.Descendants()
+                        .FirstOrDefault(x => x.Name.LocalName == "BaseURL")
+                        ?.Value;
+                }
             }
         }
+
         if (baseUrl is null)
         {
             progress.Report(new DownloadState
