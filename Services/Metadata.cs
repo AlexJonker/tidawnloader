@@ -1,14 +1,14 @@
-using System.Text.Json;
-
 namespace Tidawnloader.Services;
 
 public class TrackInfo
 {
     public string? Id { get; set; }
     public string? Title { get; set; }
-    public string? Artist { get; set; }
+    public string? ArtistName { get; set; }
+    public string? ArtistId { get; set; }
     public string? TrackNumber { get; set; }
-    public string? Album { get; set; }
+    public string? AlbumName { get; set; }
+    public string? AlbumId { get; set; }
     public string? CoverUrl { get; set; }
     public int? Duration { get; set; }
     public string? AudioQuality { get; set; }
@@ -24,7 +24,7 @@ public class Metadata
         _request = request;
     }
 
-    public async Task<TrackInfo> GetInfo(string trackId)
+    public async Task<TrackInfo> GetTrackInfo(string trackId)
     {
         if (string.IsNullOrEmpty(trackId))
         {
@@ -52,8 +52,14 @@ public class Metadata
         if (data.TryGetProperty("title", out var title))
             info.Title = title.GetString();
 
-        if (data.TryGetProperty("artist", out var artistObj) && artistObj.TryGetProperty("name", out var artistName))
-            info.Artist = artistName.GetString();
+        if (data.TryGetProperty("artist", out var artistObj))
+        {
+            if (artistObj.TryGetProperty("name", out var artistName))
+                info.ArtistName = artistName.GetString();
+
+            if (artistObj.TryGetProperty("id", out var artistId))
+                info.ArtistId = artistId.GetString();
+        }
 
         if (data.TryGetProperty("trackNumber", out var trackNumber))
             info.TrackNumber = trackNumber.GetInt32().ToString();
@@ -61,7 +67,10 @@ public class Metadata
         if (data.TryGetProperty("album", out var albumObj))
         {
             if (albumObj.TryGetProperty("title", out var albumTitle))
-                info.Album = albumTitle.GetString();
+                info.AlbumName = albumTitle.GetString();
+
+            if (albumObj.TryGetProperty("id", out var albumId))
+                info.AlbumId = albumId.GetString();
 
             if (albumObj.TryGetProperty("cover", out var coverId))
             {

@@ -76,7 +76,7 @@ public class Downloader
             Message = $"Getting stream (id: {trackId})..."
         });
 
-        var trackInfo = await _metadata.GetInfo(trackId);
+        var trackInfo = await _metadata.GetTrackInfo(trackId);
 
         var root = await _request.Make($"track?id={trackId}&quality={trackInfo.AudioQuality}");
 
@@ -179,7 +179,7 @@ public class Downloader
             Message = $"Downloading..."
         });
 
-        var downloadPath = Path.Combine(_downloadFolder, $"{trackInfo.Artist}", $"{trackInfo.Album}");
+        var downloadPath = Path.Combine(_downloadFolder, $"{trackInfo.ArtistName}", $"{trackInfo.AlbumName}");
 
         Directory.CreateDirectory(downloadPath);
         Directory.CreateDirectory(_tempFolder);
@@ -242,9 +242,9 @@ public class Downloader
 
             metadataArgs += $"-metadata tidal_id=\"{id}\" ";
             metadataArgs += $"-metadata title=\"{trackInfo.Title}\" ";
-            metadataArgs += $"-metadata artist=\"{trackInfo.Artist}\" ";
-            metadataArgs += $"-metadata albumartist=\"{trackInfo.Artist}\" ";
-            metadataArgs += $"-metadata album=\"{trackInfo.Album}\" ";
+            metadataArgs += $"-metadata artist=\"{trackInfo.ArtistName}\" ";
+            metadataArgs += $"-metadata albumartist=\"{trackInfo.ArtistName}\" ";
+            metadataArgs += $"-metadata album=\"{trackInfo.AlbumName}\" ";
             metadataArgs += $"-metadata tracknumber=\"{trackInfo.TrackNumber}\" ";
             metadataArgs += $"-metadata comment=\"https://github.com/alexjonker/tidawnloader\" ";
 

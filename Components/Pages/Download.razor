@@ -54,8 +54,8 @@
 
                     <div class="flex-1 space-y-1 min-w-0">
                         <h2 class="text-lg font-medium truncate">@TrackInfo.Title</h2>
-                        <p class="text-sm text-neutral-400 truncate">@TrackInfo.Artist</p>
-                        <p class="text-sm text-neutral-500 truncate">@TrackInfo.Album</p>
+                        <p class="text-sm text-neutral-400 truncate">@TrackInfo.ArtistName</p>
+                        <p class="text-sm text-neutral-500 truncate">@TrackInfo.AlbumName</p>
                     </div>
                 </div>
 
@@ -163,7 +163,7 @@
 
         IsLoading = true;
 
-        TrackInfo = await Metadata.GetInfo(trackId.Trim());
+        TrackInfo = await Metadata.GetTrackInfo(trackId.Trim());
 
         IsLoading = false;
     }
