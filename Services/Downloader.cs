@@ -236,28 +236,11 @@ public class Downloader
             var metadataArgs = "";
 
             metadataArgs += $"-metadata tidal_id=\"{id}\" ";
-
-            if (!string.IsNullOrEmpty(trackInfo.Title))
-            {
-                metadataArgs += $"-metadata title=\"{trackInfo.Title}\" ";
-            }
-
-            if (!string.IsNullOrEmpty(trackInfo.Artist))
-            {
-                metadataArgs += $"-metadata artist=\"{trackInfo.Artist}\" ";
-                metadataArgs += $"-metadata albumartist=\"{trackInfo.Artist}\" ";
-            }
-
-            if (!string.IsNullOrEmpty(trackInfo.Album))
-            {
-                metadataArgs += $"-metadata album=\"{trackInfo.Album}\" ";
-            }
-
-            if (!string.IsNullOrEmpty(trackInfo.TrackNumber))
-            {
-                metadataArgs += $"-metadata tracknumber=\"{trackInfo.TrackNumber}\" ";
-            }
-
+            metadataArgs += $"-metadata title=\"{trackInfo.Title}\" ";
+            metadataArgs += $"-metadata artist=\"{trackInfo.Artist}\" ";
+            metadataArgs += $"-metadata albumartist=\"{trackInfo.Artist}\" ";
+            metadataArgs += $"-metadata album=\"{trackInfo.Album}\" ";
+            metadataArgs += $"-metadata tracknumber=\"{trackInfo.TrackNumber}\" ";
 
             if (!string.IsNullOrEmpty(trackInfo.CoverUrl))
             {
