@@ -32,7 +32,7 @@ public class Downloader
     private readonly Request _request;
     private readonly ILogger<Downloader> _logger;
     private readonly string _downloadFolder;
-
+    private readonly string _tempFolder;
     public Downloader(
         IHttpClientFactory httpClientFactory,
         Metadata metadata,
@@ -46,6 +46,7 @@ public class Downloader
         _logger = logger;
 
         _downloadFolder = config["DownloadPath"] ?? "./downloads";
+        _tempFolder = config["TempPath"] ?? "./temp";
     }
 
     public async Task DownloadAsync(string input, IProgress<DownloadState> progress)
@@ -181,12 +182,13 @@ public class Downloader
         var downloadPath = Path.Combine(_downloadFolder, $"{trackInfo.Artist}", $"{trackInfo.Album}");
 
         Directory.CreateDirectory(downloadPath);
+        Directory.CreateDirectory(_tempFolder);
 
         // TODO: proper folder structure and file names
         var filePath = Path.Combine(downloadPath, $"{trackInfo.Title}.flac");
-        var tempPath = Path.Combine(downloadPath, $"{trackInfo.Title}_temp.flac");
-        var metaTempPath = Path.Combine(downloadPath, $"{trackInfo.Title}_meta.flac");
-        var coverPath = Path.Combine(downloadPath, $"{trackInfo.Title}_cover.jpg");
+        var tempPath = Path.Combine(_tempFolder, $"{id}_temp.flac");
+        var metaTempPath = Path.Combine(_tempFolder, $"{id}_meta.flac");
+        var coverPath = Path.Combine(_tempFolder, $"{id}_cover.jpg");
 
 
         try
