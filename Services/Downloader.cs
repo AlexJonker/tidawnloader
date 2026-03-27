@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
+using Tidawnloader.Models;
 
 using FFMpegCore;
 
@@ -78,9 +79,9 @@ public class Downloader
 
         var trackInfo = await _metadata.GetTrackInfo(trackId);
 
-        var root = await _request.Make($"track?id={trackId}&quality={trackInfo.AudioQuality}");
+        var streamData = await _request.Make($"track?id={Uri.EscapeDataString(trackId)}&quality={Uri.EscapeDataString(trackInfo.AudioQuality ?? "")}");
 
-        if (root is null)
+        if (streamData is null)
         {
             progress.Report(new DownloadState
             {
@@ -90,35 +91,14 @@ public class Downloader
             return;
         }
 
-        if (!root.Value.TryGetProperty("data", out var data))
-        {
-            if (root.Value.TryGetProperty("detail", out var detail))
-            {
-                progress.Report(new DownloadState
-                {
-                    Status = DownloadStatus.Failed,
-                    Error = detail.GetString() ?? "API error"
-                });
-                return;
-            }
-
-            progress.Report(new DownloadState
-            {
-                Status = DownloadStatus.Failed,
-                Error = "Invalid API response"
-            });
-            return;
-        }
-
         string? baseUrl = null;
 
-        if (data.TryGetProperty("manifest", out var manifest) &&
-            data.TryGetProperty("manifestMimeType", out var mime))
+        if (!string.IsNullOrEmpty(streamData.Manifest) && !string.IsNullOrEmpty(streamData.ManifestMimeType))
         {
-            var mimeType = mime.GetString() ?? "";
+            var mimeType = streamData.ManifestMimeType;
 
             var manifestJson = Encoding.UTF8.GetString(
-                Convert.FromBase64String(manifest.GetString() ?? "")
+                Convert.FromBase64String(streamData.Manifest)
             );
 
             if (mimeType.Contains("bts", StringComparison.OrdinalIgnoreCase))
