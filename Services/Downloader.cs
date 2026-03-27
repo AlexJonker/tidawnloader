@@ -1,9 +1,8 @@
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-using Tidawnloader.Services;
+using FFMpegCore;
 
 namespace Tidawnloader.Services;
 
@@ -29,17 +28,20 @@ public class DownloadState
 public class Downloader
 {
     private readonly IHttpClientFactory _http;
+    private readonly Metadata _metadata;
     private readonly Request _request;
     private readonly ILogger<Downloader> _logger;
     private readonly string _downloadPath;
 
     public Downloader(
         IHttpClientFactory httpClientFactory,
+        Metadata metadata,
         Request request,
         IConfiguration config,
         ILogger<Downloader> logger)
     {
         _http = httpClientFactory;
+        _metadata = metadata;
         _request = request;
         _logger = logger;
 
@@ -176,7 +178,11 @@ public class Downloader
         Directory.CreateDirectory(_downloadPath);
 
         // TODO: proper folder structure and file names
+        var tempPath = Path.Combine(_downloadPath, $"{id}_temp.flac");
         var filePath = Path.Combine(_downloadPath, $"{id}.flac");
+        var metaTempPath = Path.Combine(_downloadPath, $"{id}_meta.flac");
+        var coverPath = Path.Combine(_downloadPath, $"{id}_cover.jpg");
+
 
         try
         {
@@ -190,7 +196,7 @@ public class Downloader
             var total = response.Content.Headers.ContentLength ?? 0;
 
             await using var input = await response.Content.ReadAsStreamAsync();
-            await using var output = File.Create(filePath);
+            await using var output = File.Create(tempPath);
 
             var buffer = new byte[81920];
             long downloaded = 0;
@@ -216,6 +222,89 @@ public class Downloader
 
             progress.Report(new DownloadState
             {
+                Status = DownloadStatus.Downloading,
+                Message = "Adding metadata..."
+            });
+
+            var trackInfo = await _metadata.GetInfo(id);
+
+
+            // TODO: maybe more here like date, year, genre, lyrics
+            // Is a bit more work since it has to come from the album api instead of the track api.
+            // https://hifi-one.spotisaver.net/album/?id=1225569
+            var metadataArgs = "";
+
+            metadataArgs += $"-metadata tidal_id=\"{id}\" ";
+
+            if (!string.IsNullOrEmpty(trackInfo.Title))
+            {
+                metadataArgs += $"-metadata title=\"{trackInfo.Title}\" ";
+            }
+
+            if (!string.IsNullOrEmpty(trackInfo.Artist))
+            {
+                metadataArgs += $"-metadata artist=\"{trackInfo.Artist}\" ";
+                metadataArgs += $"-metadata albumartist=\"{trackInfo.Artist}\" ";
+            }
+
+            if (!string.IsNullOrEmpty(trackInfo.Album))
+            {
+                metadataArgs += $"-metadata album=\"{trackInfo.Album}\" ";
+            }
+
+            if (!string.IsNullOrEmpty(trackInfo.TrackNumber))
+            {
+                metadataArgs += $"-metadata tracknumber=\"{trackInfo.TrackNumber}\" ";
+            }
+
+
+            if (!string.IsNullOrEmpty(trackInfo.CoverUrl))
+            {
+                try
+                {
+                    var coverBytes = await client.GetByteArrayAsync(trackInfo.CoverUrl);
+                    await File.WriteAllBytesAsync(coverPath, coverBytes);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to download cover image");
+                }
+            }
+
+            if (File.Exists(coverPath))
+            {
+                await FFMpegArguments
+                    .FromFileInput(tempPath)
+                    .OutputToFile(metaTempPath, false, options => options
+                        .WithCustomArgument($"-i \"{coverPath}\" {metadataArgs}-c copy -map 0 -map_metadata 0 -map 1 -disposition:v attached_pic"))
+                    .ProcessAsynchronously();
+
+                File.Delete(coverPath);
+            }
+            else
+            {
+                await FFMpegArguments
+                    .FromFileInput(tempPath)
+                    .OutputToFile(metaTempPath, false, options => options
+                        .WithCustomArgument(metadataArgs + "-c copy"))
+                    .ProcessAsynchronously();
+            }
+
+            if (!File.Exists(metaTempPath))
+            {
+                throw new Exception("FFmpeg failed to produce output file");
+            }
+
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            File.Move(metaTempPath, filePath);
+            File.Delete(tempPath);
+
+            progress.Report(new DownloadState
+            {
                 Status = DownloadStatus.Done,
                 FilePath = filePath,
                 Message = "Download finished",
@@ -224,7 +313,10 @@ public class Downloader
         }
         catch (Exception ex)
         {
-            File.Delete(filePath);
+            if (File.Exists(tempPath)) File.Delete(tempPath);
+            if (File.Exists(filePath)) File.Delete(filePath);
+            if (File.Exists(coverPath)) File.Delete(coverPath);
+            if (File.Exists(metaTempPath)) File.Delete(metaTempPath);
 
             _logger.LogError(ex,
                 "Download failed for track {TrackId}",
