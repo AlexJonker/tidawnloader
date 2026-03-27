@@ -5,7 +5,7 @@
   <br><br>
   Tidal - Downloader
   <br>
-  Self-host a webui to download music for your jellyfin/navidrome server.
+  Self hosted tidal music downloader/manager
 </p>
 
 # Run the site.
