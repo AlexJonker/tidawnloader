@@ -9,13 +9,13 @@ public class Request
     private readonly ILogger<Request> _logger;
     private static readonly string[] apis =
     [
+        "https://api.monochrome.tf",
         "https://hifi-one.spotisaver.net",
         "https://hifi-two.spotisaver.net",
         "https://eu-central.monochrome.tf",
         "https://us-west.monochrome.tf",
-        "https://api.monochrome.tf",
         "https://monochrome-api.samidy.com",
-        "https://tidal.kinoplus.online"
+        "https://tidal.kinoplus.online",
     ];
 
     public Request(
@@ -33,7 +33,7 @@ public class Request
             try
             {
                 var url = $"{api}/{endpoint}";
-                _logger.LogError($"Requesting endpoint: {url}");
+                _logger.LogDebug($"Requesting endpoint: {url}");
                 var resp = await _http.CreateClient("Default").GetAsync(url);
 
                 if (!resp.IsSuccessStatusCode)
