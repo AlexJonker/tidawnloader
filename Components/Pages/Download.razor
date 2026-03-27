@@ -1,0 +1,190 @@
+@page "/download"
+@rendermode InteractiveServer
+@using Tidawnloader.Services
+@inject Downloader Downloader
+@inject Metadata Metadata
+
+<PageTitle>Tidawnloader</PageTitle>
+
+<div class="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center px-4">
+
+    <div class="w-full max-w-xl space-y-8">
+
+        <h1 class="text-center text-3xl font-semibold">Download from tidal</h1>
+
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4 shadow-lg">
+
+            @if (TrackInfo is null)
+            {
+                <div class="space-y-4">
+                    <label class="text-sm text-neutral-400">Track ID</label>
+
+                    <div class="flex gap-2">
+                        <input
+                            class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-700 disabled:opacity-50"
+                            @bind="trackId"
+                            @bind:event="oninput"
+                            @onkeydown="OnKeyDown"
+                            type="text"
+                            placeholder="https://tidal.com/track/..."
+                            disabled="@IsLoading"
+                        />
+
+                        <button
+                            class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            @onclick="GetMetadata"
+                            disabled="@(IsLoading || string.IsNullOrWhiteSpace(trackId))"
+                        >
+                            @(IsLoading ? "…" : "Get")
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="flex gap-4">
+                    @if (!string.IsNullOrEmpty(TrackInfo.CoverUrl))
+                    {
+                        <img
+                            src="@TrackInfo.CoverUrl"
+                            alt="Cover"
+                            class="w-24 h-24 rounded-lg object-cover"
+                        />
+                    }
+
+                    <div class="flex-1 space-y-1 min-w-0">
+                        <h2 class="text-lg font-medium truncate">@TrackInfo.Title</h2>
+                        <p class="text-sm text-neutral-400 truncate">@TrackInfo.Artist</p>
+                        <p class="text-sm text-neutral-500 truncate">@TrackInfo.Album</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button
+                        class="flex-1 px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        @onclick="StartDownload"
+                        disabled="@IsRunning"
+                    >
+                        @(IsRunning ? "..." : "Download")
+                    </button>
+                </div>
+            }
+
+            @if (State.Status != DownloadStatus.Idle)
+            {
+                <div class="pt-4 space-y-3 border-t border-neutral-800">
+
+                    <p class="text-sm text-neutral-400">
+                        @StatusLabel
+                    </p>
+
+                    @if (State.Status == DownloadStatus.Downloading)
+                    {
+                        <div class="space-y-2">
+
+                            <div class="h-2 bg-neutral-800 rounded-full overflow-hidden">
+                                <div
+                                    class="h-full bg-white transition-all duration-200"
+                                    style="width: @($"{State.ProgressPercent:F0}%")">
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-neutral-400">
+                                @State.Message
+                            </p>
+
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(State.Message))
+                    {
+                        <p class="text-sm text-neutral-300">
+                            @State.Message
+                        </p>
+                    }
+
+                    @if (!string.IsNullOrEmpty(State.Error))
+                    {
+                        <p class="text-sm text-red-400">
+                            @State.Error
+                        </p>
+                    }
+
+                    @if (State.Status == DownloadStatus.Done)
+                    {
+                        <div class="flex items-center justify-between pt-2 text-sm">
+
+                            <p class="text-neutral-400 truncate">
+                                @State.FilePath
+                            </p>
+
+                            <button
+                                class="text-white hover:underline"
+                                @onclick="Reset">
+                                Download another →
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string trackId { get; set; } = string.Empty;
+    private DownloadState State { get; set; } = new();
+    private TrackInfo? TrackInfo { get; set; }
+    private bool IsLoading { get; set; }
+
+    private bool IsRunning => State.Status is
+        DownloadStatus.Resolving or
+        DownloadStatus.GettingStream or
+        DownloadStatus.Downloading;
+
+    private string StatusLabel => State.Status switch
+    {
+        DownloadStatus.Resolving     => "Resolving",
+        DownloadStatus.GettingStream => "Getting stream",
+        DownloadStatus.Downloading   => "Downloading",
+        DownloadStatus.Done          => "Done",
+        DownloadStatus.Failed        => "Failed",
+        _                            => "Starting"
+    };
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !IsLoading && !string.IsNullOrWhiteSpace(trackId))
+            await GetMetadata();
+    }
+
+    private async Task GetMetadata()
+    {
+        if (IsLoading) return;
+
+        IsLoading = true;
+
+        TrackInfo = await Metadata.GetInfo(trackId.Trim());
+
+        IsLoading = false;
+    }
+
+    private async Task StartDownload()
+    {
+        if (IsRunning) return;
+
+        var progress = new Progress<DownloadState>(state =>
+        {
+            State = state;
+            InvokeAsync(StateHasChanged);
+        });
+
+        await Downloader.DownloadAsync(trackId.Trim(), progress);
+    }
+
+    private void Reset()
+    {
+        State = new DownloadState();
+        trackId = string.Empty;
+        TrackInfo = null;
+    }
+}
