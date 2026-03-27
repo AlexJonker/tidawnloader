@@ -236,7 +236,8 @@ public class Downloader
 
             // TODO: maybe more here like date, year, genre, lyrics
             // Is a bit more work since it has to come from the album api instead of the track api.
-            // https://hifi-one.spotisaver.net/album/?id=1225569
+            // More album data: https://hifi-one.spotisaver.net/album/?id=1225569
+            // Lycrics: https://lyrics-api.binimum.org/?track=Too Sweet&artist=Isaa Corva&album=Too Sweet&duration=253
             var metadataArgs = "";
 
             metadataArgs += $"-metadata tidal_id=\"{id}\" ";
