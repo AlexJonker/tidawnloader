@@ -75,7 +75,9 @@ public class Downloader
             Message = $"Getting stream (id: {trackId})..."
         });
 
-        var root = await _request.Make($"track?id={trackId}&quality=LOSSLESS"); //TODO: get the quality from the api, it's in the /info endpoint.
+        var trackInfo = await _metadata.GetInfo(trackId);
+
+        var root = await _request.Make($"track?id={trackId}&quality={trackInfo.AudioQuality}"); //TODO: get the quality from the api, it's in the /info endpoint.
 
         if (root is null)
         {
@@ -160,13 +162,14 @@ public class Downloader
             return;
         }
 
-        await DownloadTrack(client, baseUrl, trackId, progress);
+        await DownloadTrack(client, baseUrl, trackId, trackInfo, progress);
     }
 
     private async Task DownloadTrack(
         HttpClient client,
         string streamUrl,
         string id,
+        TrackInfo trackInfo,
         IProgress<DownloadState> progress)
     {
         progress.Report(new DownloadState
@@ -175,7 +178,6 @@ public class Downloader
             Message = $"Downloading..."
         });
 
-        var trackInfo = await _metadata.GetInfo(id);
         var downloadPath = Path.Combine(_downloadFolder, $"{trackInfo.Artist}", $"{trackInfo.Album}");
 
         Directory.CreateDirectory(downloadPath);
@@ -241,6 +243,7 @@ public class Downloader
             metadataArgs += $"-metadata albumartist=\"{trackInfo.Artist}\" ";
             metadataArgs += $"-metadata album=\"{trackInfo.Album}\" ";
             metadataArgs += $"-metadata tracknumber=\"{trackInfo.TrackNumber}\" ";
+            metadataArgs += $"-metadata comment=\"https://github.com/alexjonker/tidawnloader\" ";
 
             if (!string.IsNullOrEmpty(trackInfo.CoverUrl))
             {

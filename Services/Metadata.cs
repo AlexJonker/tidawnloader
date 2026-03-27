@@ -11,6 +11,7 @@ public class TrackInfo
     public string? Album { get; set; }
     public string? CoverUrl { get; set; }
     public int? Duration { get; set; }
+    public string? AudioQuality { get; set; }
     public string? Error { get; set; }
 }
 
@@ -72,6 +73,9 @@ public class Metadata
 
         if (data.TryGetProperty("duration", out var duration))
             info.Duration = duration.GetInt32();
+
+        if (data.TryGetProperty("audioQuality", out var audioQuality))
+            info.AudioQuality = audioQuality.GetString();
 
         return info;
     }
