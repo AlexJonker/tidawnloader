@@ -31,7 +31,7 @@ public class Downloader
     private readonly Metadata _metadata;
     private readonly Request _request;
     private readonly ILogger<Downloader> _logger;
-    private readonly string _downloadPath;
+    private readonly string _downloadFolder;
 
     public Downloader(
         IHttpClientFactory httpClientFactory,
@@ -45,7 +45,7 @@ public class Downloader
         _request = request;
         _logger = logger;
 
-        _downloadPath = config["DownloadPath"] ?? "./downloads";
+        _downloadFolder = config["DownloadPath"] ?? "./downloads";
     }
 
     public async Task DownloadAsync(string input, IProgress<DownloadState> progress)
@@ -175,13 +175,16 @@ public class Downloader
             Message = $"Downloading..."
         });
 
-        Directory.CreateDirectory(_downloadPath);
+        var trackInfo = await _metadata.GetInfo(id);
+        var downloadPath = Path.Combine(_downloadFolder, $"{trackInfo.Artist}", $"{trackInfo.Album}");
+
+        Directory.CreateDirectory(downloadPath);
 
         // TODO: proper folder structure and file names
-        var tempPath = Path.Combine(_downloadPath, $"{id}_temp.flac");
-        var filePath = Path.Combine(_downloadPath, $"{id}.flac");
-        var metaTempPath = Path.Combine(_downloadPath, $"{id}_meta.flac");
-        var coverPath = Path.Combine(_downloadPath, $"{id}_cover.jpg");
+        var filePath = Path.Combine(downloadPath, $"{trackInfo.Title}.flac");
+        var tempPath = Path.Combine(downloadPath, $"{trackInfo.Title}_temp.flac");
+        var metaTempPath = Path.Combine(downloadPath, $"{trackInfo.Title}_meta.flac");
+        var coverPath = Path.Combine(downloadPath, $"{trackInfo.Title}_cover.jpg");
 
 
         try
@@ -225,8 +228,6 @@ public class Downloader
                 Status = DownloadStatus.Downloading,
                 Message = "Adding metadata..."
             });
-
-            var trackInfo = await _metadata.GetInfo(id);
 
 
             // TODO: maybe more here like date, year, genre, lyrics
