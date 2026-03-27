@@ -62,7 +62,7 @@ public class Metadata
             {
                 var cover = coverId.GetString();
                 if (!string.IsNullOrEmpty(cover))
-                    info.CoverUrl = $"https://resources.tidal.com/images/{cover.Replace("-", "/")}/320x320.jpg";
+                    info.CoverUrl = $"https://resources.tidal.com/images/{cover.Replace("-", "/")}/1280x1280.jpg";
             }
         }
 
