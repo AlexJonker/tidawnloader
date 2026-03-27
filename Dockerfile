@@ -19,6 +19,8 @@ RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y ffmpeg && apt-get clean
+
 COPY --from=build /app/publish .
 
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
