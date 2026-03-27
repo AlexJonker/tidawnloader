@@ -6,6 +6,7 @@ services:
     ports:
       - "4675:8080"
     volumes:
+      # Replace /DATA/AppData/tidawnloader/Downloads with the path where your jellyfin music library is located.
       - /DATA/AppData/tidawnloader/Downloads:/Downloads
     environment:
       - DownloadPath=/Downloads
