@@ -78,7 +78,7 @@ public class Downloader
 
         var trackInfo = await _metadata.GetInfo(trackId);
 
-        var root = await _request.Make($"track?id={trackId}&quality={trackInfo.AudioQuality}"); //TODO: get the quality from the api, it's in the /info endpoint.
+        var root = await _request.Make($"track?id={trackId}&quality={trackInfo.AudioQuality}");
 
         if (root is null)
         {
