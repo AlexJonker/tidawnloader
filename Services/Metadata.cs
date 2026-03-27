@@ -7,6 +7,7 @@ public class TrackInfo
     public string? Id { get; set; }
     public string? Title { get; set; }
     public string? Artist { get; set; }
+    public string? TrackNumber { get; set; }
     public string? Album { get; set; }
     public string? CoverUrl { get; set; }
     public int? Duration { get; set; }
@@ -52,6 +53,9 @@ public class Metadata
 
         if (data.TryGetProperty("artist", out var artistObj) && artistObj.TryGetProperty("name", out var artistName))
             info.Artist = artistName.GetString();
+
+        if (data.TryGetProperty("trackNumber", out var trackNumber))
+            info.TrackNumber = trackNumber.GetInt32().ToString();
 
         if (data.TryGetProperty("album", out var albumObj))
         {
