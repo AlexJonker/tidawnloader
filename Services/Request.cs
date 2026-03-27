@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Tidawnloader.Models;
 
 namespace Tidawnloader.Services;
 
@@ -25,17 +26,19 @@ public class Request
         _logger = logger;
     }
 
-    public async Task<JsonElement?> Make(string endpoint) // Make a request
+    public async Task<Track?> Make(string endpoint)
     {
         foreach (var api in apis)
         {
             try
             {
                 var url = $"{api}/{endpoint}";
+                _logger.LogError($"Requesting endpoint: {url}");
                 var resp = await _http.CreateClient("Default").GetAsync(url);
 
                 if (!resp.IsSuccessStatusCode)
                 {
+                    _logger.LogError($"{api} failed with {resp.StatusCode} and {resp.Content}");
                     continue;
                 }
 
@@ -43,9 +46,11 @@ public class Request
 
                 using var doc = JsonDocument.Parse(body);
 
-                var root = doc.RootElement;
+                if (doc.RootElement.TryGetProperty("detail", out _))
+                    continue;
 
-                return root.Clone();
+                var data = doc.RootElement.GetProperty("data");
+                return JsonSerializer.Deserialize<Track>(data.GetRawText());
             }
             catch (Exception ex)
             {

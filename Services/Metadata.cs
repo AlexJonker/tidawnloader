@@ -1,3 +1,5 @@
+using Tidawnloader.Models;
+
 namespace Tidawnloader.Services;
 
 public class TrackInfo
@@ -31,60 +33,26 @@ public class Metadata
             return new TrackInfo { Error = "Invalid track ID" };
         }
 
-        var root = await _request.Make($"info?id={trackId}");
+        var track = await _request.Make($"info?id={Uri.EscapeDataString(trackId)}");
 
-        if (root is null)
+        if (track is null)
         {
             return new TrackInfo { Error = "No API response" };
         }
 
-        if (!root.Value.TryGetProperty("data", out var data))
+        var info = new TrackInfo
         {
-            var error = root.Value.TryGetProperty("detail", out var detail)
-                ? detail.GetString()
-                : "Invalid API response";
-
-            return new TrackInfo { Error = error };
-        }
-
-        var info = new TrackInfo { Id = trackId };
-
-        if (data.TryGetProperty("title", out var title))
-            info.Title = title.GetString();
-
-        if (data.TryGetProperty("artist", out var artistObj))
-        {
-            if (artistObj.TryGetProperty("name", out var artistName))
-                info.ArtistName = artistName.GetString();
-
-            if (artistObj.TryGetProperty("id", out var artistId))
-                info.ArtistId = artistId.GetString();
-        }
-
-        if (data.TryGetProperty("trackNumber", out var trackNumber))
-            info.TrackNumber = trackNumber.GetInt32().ToString();
-
-        if (data.TryGetProperty("album", out var albumObj))
-        {
-            if (albumObj.TryGetProperty("title", out var albumTitle))
-                info.AlbumName = albumTitle.GetString();
-
-            if (albumObj.TryGetProperty("id", out var albumId))
-                info.AlbumId = albumId.GetString();
-
-            if (albumObj.TryGetProperty("cover", out var coverId))
-            {
-                var cover = coverId.GetString();
-                if (!string.IsNullOrEmpty(cover))
-                    info.CoverUrl = $"https://resources.tidal.com/images/{cover.Replace("-", "/")}/1280x1280.jpg";
-            }
-        }
-
-        if (data.TryGetProperty("duration", out var duration))
-            info.Duration = duration.GetInt32();
-
-        if (data.TryGetProperty("audioQuality", out var audioQuality))
-            info.AudioQuality = audioQuality.GetString();
+            Id = trackId,
+            Title = track.Title,
+            ArtistName = track.Artist.Name,
+            ArtistId = track.Artist.Id.ToString(),
+            TrackNumber = track.TrackNumber.ToString(),
+            AlbumName = track.Album.Title,
+            AlbumId = track.Album.Id.ToString(),
+            CoverUrl = $"https://resources.tidal.com/images/{track.Album.Cover.Replace("-", "/")}/1280x1280.jpg",
+            Duration = track.Duration,
+            AudioQuality = track.AudioQuality
+        };
 
         return info;
     }
