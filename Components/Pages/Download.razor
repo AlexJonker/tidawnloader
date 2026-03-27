@@ -1,8 +1,9 @@
 @page "/download"
 @rendermode InteractiveServer
 @using Tidawnloader.Services
+@using Tidawnloader.Models
 @inject Downloader Downloader
-@inject Metadata Metadata
+@inject Request Request
 
 <PageTitle>Tidawnloader</PageTitle>
 
@@ -14,7 +15,7 @@
 
         <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4 shadow-lg">
 
-            @if (TrackInfo is null)
+            @if (Track is null)
             {
                 <div class="space-y-4">
                     <label class="text-sm text-neutral-400">Track ID</label>
@@ -43,19 +44,19 @@
             else
             {
                 <div class="flex gap-4">
-                    @if (!string.IsNullOrEmpty(TrackInfo.CoverUrl))
+                    @if (!string.IsNullOrEmpty(Track.Album?.Cover))
                     {
                         <img
-                            src="@TrackInfo.CoverUrl"
+                            src="@($"https://resources.tidal.com/images/{Track.Album.Cover.Replace("-", "/")}/1280x1280.jpg")"
                             alt="Cover"
                             class="w-24 h-24 rounded-lg object-cover"
                         />
                     }
 
                     <div class="flex-1 space-y-1 min-w-0">
-                        <h2 class="text-lg font-medium truncate">@TrackInfo.Title</h2>
-                        <p class="text-sm text-neutral-400 truncate">@TrackInfo.ArtistName</p>
-                        <p class="text-sm text-neutral-500 truncate">@TrackInfo.AlbumName</p>
+                        <h2 class="text-lg font-medium truncate">@Track.Title</h2>
+                        <p class="text-sm text-neutral-400 truncate">@Track.Artist?.Name</p>
+                        <p class="text-sm text-neutral-500 truncate">@Track.Album?.Title</p>
                     </div>
                 </div>
 
@@ -133,7 +134,7 @@
 @code {
     private string trackId { get; set; } = string.Empty;
     private DownloadState State { get; set; } = new();
-    private TrackInfo? TrackInfo { get; set; }
+    private Track? Track { get; set; }
     private bool IsLoading { get; set; }
 
     private bool IsRunning => State.Status is
@@ -163,7 +164,7 @@
 
         IsLoading = true;
 
-        TrackInfo = await Metadata.GetTrackInfo(trackId.Trim());
+        Track = await Request.Make($"info?id={Uri.EscapeDataString(trackId.Trim())}");
 
         IsLoading = false;
     }
@@ -185,6 +186,6 @@
     {
         State = new DownloadState();
         trackId = string.Empty;
-        TrackInfo = null;
+        Track = null;
     }
 }

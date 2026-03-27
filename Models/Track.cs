@@ -23,13 +23,10 @@ public class Track
     public string AudioQuality { get; set; } = "";
 
     [JsonPropertyName("artist")]
-    public ArtistInfo Artist { get; set; } = new();
-
-    [JsonPropertyName("artists")]
-    public List<ArtistInfo> Artists { get; set; } = [];
+    public Artist Artist { get; set; } = new();
 
     [JsonPropertyName("album")]
-    public AlbumInfo Album { get; set; } = new();
+    public Album Album { get; set; } = new();
 
     [JsonPropertyName("manifest")]
     public string? Manifest { get; set; }
@@ -50,7 +47,7 @@ public class Track
 
 }
 
-public class ArtistInfo
+public class Artist
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }
@@ -62,7 +59,7 @@ public class ArtistInfo
     public string? Picture { get; set; }
 }
 
-public class AlbumInfo
+public class Album
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }

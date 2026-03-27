@@ -29,20 +29,17 @@ public class DownloadState
 public class Downloader
 {
     private readonly IHttpClientFactory _http;
-    private readonly Metadata _metadata;
     private readonly Request _request;
     private readonly ILogger<Downloader> _logger;
     private readonly string _downloadFolder;
     private readonly string _tempFolder;
     public Downloader(
         IHttpClientFactory httpClientFactory,
-        Metadata metadata,
         Request request,
         IConfiguration config,
         ILogger<Downloader> logger)
     {
         _http = httpClientFactory;
-        _metadata = metadata;
         _request = request;
         _logger = logger;
 
@@ -77,9 +74,19 @@ public class Downloader
             Message = $"Getting stream (id: {trackId})..."
         });
 
-        var trackInfo = await _metadata.GetTrackInfo(trackId);
+        var track = await _request.Make($"info?id={Uri.EscapeDataString(trackId)}");
 
-        var streamData = await _request.Make($"track?id={Uri.EscapeDataString(trackId)}&quality={Uri.EscapeDataString(trackInfo.AudioQuality ?? "")}");
+        if (track is null)
+        {
+            progress.Report(new DownloadState
+            {
+                Status = DownloadStatus.Failed,
+                Error = "Track not found"
+            });
+            return;
+        }
+
+        var streamData = await _request.Make($"track?id={Uri.EscapeDataString(trackId)}&quality={Uri.EscapeDataString(track.AudioQuality ?? "")}");
 
         if (streamData is null)
         {
@@ -143,14 +150,14 @@ public class Downloader
             return;
         }
 
-        await DownloadTrack(client, baseUrl, trackId, trackInfo, progress);
+        await DownloadTrack(client, baseUrl, trackId, track, progress);
     }
 
     private async Task DownloadTrack(
         HttpClient client,
         string streamUrl,
         string id,
-        TrackInfo trackInfo,
+        Track track,
         IProgress<DownloadState> progress)
     {
         progress.Report(new DownloadState
@@ -159,13 +166,13 @@ public class Downloader
             Message = $"Downloading..."
         });
 
-        var downloadPath = Path.Combine(_downloadFolder, $"{trackInfo.ArtistName}", $"{trackInfo.AlbumName}");
+        var downloadPath = Path.Combine(_downloadFolder, $"{track.Artist.Name}", $"{track.Album.Title}");
 
         Directory.CreateDirectory(downloadPath);
         Directory.CreateDirectory(_tempFolder);
 
         // TODO: proper folder structure and file names
-        var filePath = Path.Combine(downloadPath, $"{trackInfo.Title}.flac");
+        var filePath = Path.Combine(downloadPath, $"{track.Title}.flac");
         var tempPath = Path.Combine(_tempFolder, $"{id}_temp.flac");
         var metaTempPath = Path.Combine(_tempFolder, $"{id}_meta.flac");
         var coverPath = Path.Combine(_tempFolder, $"{id}_cover.jpg");
@@ -221,18 +228,19 @@ public class Downloader
             var metadataArgs = "";
 
             metadataArgs += $"-metadata tidal_id=\"{id}\" ";
-            metadataArgs += $"-metadata title=\"{trackInfo.Title}\" ";
-            metadataArgs += $"-metadata artist=\"{trackInfo.ArtistName}\" ";
-            metadataArgs += $"-metadata albumartist=\"{trackInfo.ArtistName}\" ";
-            metadataArgs += $"-metadata album=\"{trackInfo.AlbumName}\" ";
-            metadataArgs += $"-metadata tracknumber=\"{trackInfo.TrackNumber}\" ";
+            metadataArgs += $"-metadata title=\"{track.Title}\" ";
+            metadataArgs += $"-metadata artist=\"{track.Artist.Name}\" ";
+            metadataArgs += $"-metadata albumartist=\"{track.Artist.Name}\" ";
+            metadataArgs += $"-metadata album=\"{track.Album.Title}\" ";
+            metadataArgs += $"-metadata tracknumber=\"{track.TrackNumber}\" ";
             metadataArgs += $"-metadata comment=\"https://github.com/alexjonker/tidawnloader\" ";
 
-            if (!string.IsNullOrEmpty(trackInfo.CoverUrl))
+            var coverUrl = $"https://resources.tidal.com/images/{track.Album.Cover.Replace("-", "/")}/1280x1280.jpg";
+            if (!string.IsNullOrEmpty(track.Album.Cover))
             {
                 try
                 {
-                    var coverBytes = await client.GetByteArrayAsync(trackInfo.CoverUrl);
+                    var coverBytes = await client.GetByteArrayAsync(coverUrl);
                     await File.WriteAllBytesAsync(coverPath, coverBytes);
                 }
                 catch (Exception ex)
