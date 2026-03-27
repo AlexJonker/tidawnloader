@@ -56,8 +56,8 @@ public class Downloader
             Message = "Resolving track..."
         });
 
-        var trackUrl = input.Trim();
-        if (trackUrl is null)
+        var trackId = input.Trim();
+        if (trackId is null)
         {
             progress.Report(new DownloadState
             {
@@ -67,26 +67,13 @@ public class Downloader
             return;
         }
 
-        var match = Regex.Match(trackUrl, @"/track/(\d+)");
-        if (!match.Success)
-        {
-            progress.Report(new DownloadState
-            {
-                Status = DownloadStatus.Failed,
-                Error = "Couldn't extract track id"
-            });
-            return;
-        }
-
-        var trackId = match.Groups[1].Value;
-
         progress.Report(new DownloadState
         {
             Status = DownloadStatus.GettingStream,
             Message = $"Getting stream (id: {trackId})..."
         });
 
-        var root = await _request.Make($"track?id={trackId}&quality=LOSSLESS");
+        var root = await _request.Make($"track?id={trackId}&quality=LOSSLESS"); //TODO: get the quality from the api, it's in the /info endpoint.
 
         if (root is null)
         {

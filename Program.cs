@@ -13,6 +13,7 @@ builder.Services.AddHttpClient("Default", client =>
     client.Timeout = TimeSpan.FromMinutes(10);
 });
 builder.Services.AddScoped<Request>();
+builder.Services.AddScoped<Metadata>();
 builder.Services.AddScoped<Downloader>();
 
 var app = builder.Build();
