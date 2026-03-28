@@ -1,7 +1,20 @@
 using Tidawnloader.Components;
 using Tidawnloader.Services;
+using Tidawnloader.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var dbHost = builder.Configuration["Db:host"] ?? "localhost";
+var dbPort = builder.Configuration["Db:port"] ?? "3306";
+var dbName = builder.Configuration["Db:name"] ?? "tidawnloader";
+var dbUser = builder.Configuration["Db:user"] ?? "root";
+var dbPassword = builder.Configuration["Db:password"] ?? "";
+
+var connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};User={dbUser};Password={dbPassword};";
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -16,6 +29,12 @@ builder.Services.AddScoped<Request>();
 builder.Services.AddScoped<Downloader>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

@@ -14,6 +14,11 @@ Install node modules
 npm i
 ```
 
+Install dotnet ef
+```bash
+dotnet tool install --global dotnet-ef
+```
+
 Run the site
 ```bash
 npm run dev
