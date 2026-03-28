@@ -7,5 +7,5 @@
 </div>
 
 @code {
-  private string Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
+  private string Version => Assembly.GetExecutingAssembly().GetName().Version!.ToString(3);
 }
