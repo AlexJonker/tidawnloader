@@ -34,10 +34,12 @@ public class Request
     ];
 
     private static List<string>? _apis;
+    private static DateTime _uptimeApiTime;
+    private static readonly TimeSpan _uptimeApiExpiryTime = TimeSpan.FromHours(6);
 
     public async Task<Track?> Make(string endpoint)
     {
-        if (_apis == null)
+        if (_apis == null || (DateTime.UtcNow - _uptimeApiTime) > _uptimeApiExpiryTime)
         {
             foreach (var url in UptimeApiUrls.OrderBy(_ => Random.Shared.Next()))
             {
@@ -61,6 +63,7 @@ public class Request
 
                     if (instances.Count == 0) continue;
                     _apis = instances;
+                    _uptimeApiTime = DateTime.UtcNow;
                     break;
                 }
                 catch (Exception ex)
