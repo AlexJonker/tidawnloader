@@ -2,14 +2,15 @@ using Tidawnloader.Components;
 using Tidawnloader.Services;
 using Tidawnloader.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var dbHost = builder.Configuration["Db:host"] ?? "localhost";
-var dbPort = builder.Configuration["Db:port"] ?? "3306";
-var dbName = builder.Configuration["Db:name"] ?? "tidawnloader";
-var dbUser = builder.Configuration["Db:user"] ?? "root";
-var dbPassword = builder.Configuration["Db:password"] ?? "";
+var dbHost = builder.Configuration["Db:host"];
+var dbPort = builder.Configuration["Db:port"];
+var dbName = builder.Configuration["Db:name"];
+var dbUser = builder.Configuration["Db:user"];
+var dbPassword = builder.Configuration["Db:password"];
 
 var connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};User={dbUser};Password={dbPassword};";
 
@@ -19,6 +20,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Store data protection keys in StoragePath instead of ~/.aspnet/DataProtection-Keys
+var dataProtectionBuilder = builder.Services.AddDataProtection();
+
+var storagePath = builder.Configuration["StoragePath"]!;
+
+dataProtectionBuilder.PersistKeysToFileSystem(
+    new DirectoryInfo(Path.Combine(storagePath, "DataProtection-Keys"))
+);
 
 // HttpClient used by Downloader
 builder.Services.AddHttpClient("Default", client =>

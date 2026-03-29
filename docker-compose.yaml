@@ -27,8 +27,10 @@ services:
     volumes:
       # Replace /DATA/AppData/tidawnloader/Music with the path where your jellyfin music library is located.
       - /DATA/AppData/tidawnloader/Music:/Music
+      - /DATA/AppData/tidawnloader/Storage:/Storage
     environment:
       - DownloadPath=/Music
+      - StoragePath=/Storage
       - DB__host=mariadb
       - DB__user=root
       - DB__password=changeme

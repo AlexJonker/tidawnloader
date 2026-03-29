@@ -43,8 +43,8 @@ public class Downloader
         _request = request;
         _logger = logger;
 
-        _downloadFolder = config["DownloadPath"] ?? "./downloads";
-        _tempFolder = config["TempPath"] ?? "./temp";
+        _downloadFolder = config["DownloadPath"]!;
+        _tempFolder = config["TempPath"]!;
     }
 
     public async Task DownloadAsync(string input, IProgress<DownloadState> progress)
