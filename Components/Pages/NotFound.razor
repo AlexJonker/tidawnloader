@@ -1,5 +1,22 @@
 ﻿@page "/not-found"
 @layout MainLayout
 
-<h3>Not Found</h3>
-<p>Sorry, the content you are looking for does not exist.</p>
+<div class="flex-1 flex flex-col items-center justify-center text-center">
+    
+    <h1 class="text-6xl font-bold text-gray-300 mb-4">
+        404
+    </h1>
+
+    <h2 class="text-2xl font-semibold text-gray-200 mb-4">
+        Page Not Found
+    </h2>
+
+    <p class="text-gray-400 max-w-xl mb-8">
+        Sorry, the page you are looking for doesn't exist or may have been moved.
+        Please check the URL or click the button below to go home.
+    </p>
+
+    <a href="/" class="bg-gray-200 text-black px-5 py-2 font-semibold hover:bg-white transition-colors duration-75 cursor-pointer">
+        Go to Home
+    </a>
+</div>

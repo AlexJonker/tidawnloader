@@ -1,0 +1,73 @@
+﻿@using System.Reflection
+
+@code {
+    private string Version => Assembly.GetExecutingAssembly().GetName().Version!.ToString(3);
+    private bool IsMenuOpen { get; set; } = false;
+    private void ToggleMenu() => IsMenuOpen = !IsMenuOpen;
+    private void CloseMenu() => IsMenuOpen = false;
+}
+
+<nav class="sticky top-0 z-50 w-full backdrop-blur-xs bg-black/60 border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+
+        <a class="flex items-center gap-3 group" href="/">
+        <!-- TODO: Image here maybe? -->
+            <div class="flex items-center gap-2">
+                <span class="font-semibold text-white text-lg tracking-tight">
+                    Tidawnloader
+                </span>
+                <span class="text-xs text-zinc-500">
+                    v@(Version)
+                </span>
+            </div>
+        </a>
+
+        <div class="hidden md:flex items-center gap-6">
+
+            <a href="/download"
+               class="text-sm text-zinc-400 hover:text-white transition-colors">
+                Download
+            </a>
+
+            <a href="/library"
+               class="text-sm text-zinc-400 hover:text-white transition-colors">
+                Library
+            </a>
+
+            <a href="/settings"
+               class="text-sm text-zinc-400 hover:text-white transition-colors">
+                Settings
+            </a>
+        </div>
+
+        <!-- Mobile -->
+        <button @onclick="ToggleMenu"
+                class="md:hidden flex flex-col gap-1.5 cursor-pointer"
+                aria-label="Toggle menu"
+                aria-expanded="@IsMenuOpen">
+            <span class="w-6 h-0.5 bg-white transition-all duration-200 @(IsMenuOpen ? "rotate-45 translate-y-2" : "")"></span>
+            <span class="w-6 h-0.5 bg-white transition-all duration-200 @(IsMenuOpen ? "opacity-0" : "")"></span>
+            <span class="w-6 h-0.5 bg-white transition-all duration-200 @(IsMenuOpen ? "-rotate-45 -translate-y-2" : "")"></span>
+        </button>
+    </div>
+
+    <div class="md:hidden overflow-hidden transition-all duration-300 @(IsMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0")">
+        <div class="px-6 pb-6 pt-4 flex flex-col gap-4 bg-black/95 border-t border-white/10">
+
+            <a href="/download" @onclick="CloseMenu"
+               class="text-zinc-400 hover:text-white transition">
+                Download
+            </a>
+
+            <a href="/library" @onclick="CloseMenu"
+               class="text-zinc-400 hover:text-white transition">
+                Library
+            </a>
+
+            <a href="/settings" @onclick="CloseMenu"
+               class="text-zinc-400 hover:text-white transition">
+                Settings
+            </a>
+        </div>
+    </div>
+</nav>

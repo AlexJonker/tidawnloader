@@ -9,19 +9,16 @@
 <div class="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center px-4">
 
     <div class="w-full max-w-xl space-y-8">
-
-        <h1 class="text-center text-3xl font-semibold">Download from tidal</h1>
-
-        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4 shadow-lg">
+        <div class="space-y-4">
 
             @if (Track is null)
             {
                 <div class="space-y-4">
-                    <label class="text-sm text-neutral-400">Track ID</label>
+                    <label class="text-sm text-gray-400">Track ID</label>
 
                     <div class="flex gap-2">
                         <input
-                            class="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-700 disabled:opacity-50"
+                            class="flex-1 bg-neutral-950 border border-neutral-800 px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-neutral-700 disabled:opacity-50"
                             @bind="trackId"
                             @bind:event="oninput"
                             @onkeydown="OnKeyDown"
@@ -31,7 +28,7 @@
                         />
 
                         <button
-                            class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="px-5 py-2 bg-gray-200 text-black font-semibold hover:bg-white transition-colors duration-75 disabled:opacity-50 disabled:cursor-not-allowed"
                             @onclick="GetMetadata"
                             disabled="@(IsLoading || string.IsNullOrWhiteSpace(trackId))"
                         >
@@ -48,20 +45,20 @@
                         <img
                             src="@($"https://resources.tidal.com/images/{Track.Album.Cover.Replace("-", "/")}/1280x1280.jpg")"
                             alt="Cover"
-                            class="w-24 h-24 rounded-lg object-cover"
+                            class="w-24 h-24 object-cover"
                         />
                     }
 
                     <div class="flex-1 space-y-1 min-w-0">
-                        <h2 class="text-lg font-medium truncate">@Track.Title</h2>
-                        <p class="text-sm text-neutral-400 truncate">@Track.Artist?.Name</p>
-                        <p class="text-sm text-neutral-500 truncate">@Track.Album?.Title</p>
+                        <h2 class="text-2xl font-semibold text-gray-200 truncate">@Track.Title</h2>
+                        <p class="text-sm text-gray-400 truncate">@Track.Artist?.Name</p>
+                        <p class="text-sm text-gray-400 truncate">@Track.Album?.Title</p>
                     </div>
                 </div>
 
                 <div class="flex gap-2 pt-2">
                     <button
-                        class="flex-1 px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="flex-1 px-5 py-2 bg-gray-200 text-black font-semibold hover:bg-white transition-colors duration-75 disabled:opacity-50 disabled:cursor-not-allowed"
                         @onclick="StartDownload"
                         disabled="@IsRunning"
                     >
@@ -74,7 +71,7 @@
             {
                 <div class="pt-4 space-y-3 border-t border-neutral-800">
 
-                    <p class="text-sm text-neutral-400">
+                    <p class="text-sm text-gray-400">
                         @StatusLabel
                     </p>
 
@@ -84,12 +81,12 @@
 
                             <div class="h-2 bg-neutral-800 rounded-full overflow-hidden">
                                 <div
-                                    class="h-full bg-white transition-all duration-200"
+                                    class="h-full bg-gray-200 transition-all duration-200"
                                     style="width: @($"{State.ProgressPercent:F0}%")">
                                 </div>
                             </div>
 
-                            <p class="text-xs text-neutral-400">
+                            <p class="text-xs text-gray-400">
                                 @State.Message
                             </p>
 
@@ -97,7 +94,7 @@
                     }
                     else if (!string.IsNullOrEmpty(State.Message))
                     {
-                        <p class="text-sm text-neutral-300">
+                        <p class="text-sm text-gray-200">
                             @State.Message
                         </p>
                     }
@@ -111,18 +108,16 @@
 
                     @if (State.Status == DownloadStatus.Done)
                     {
-                        <div class="flex items-center justify-between pt-2 text-sm">
 
-                            <p class="text-neutral-400 truncate">
-                                @State.FilePath
-                            </p>
+                        <p class="text-gray-400 truncate">
+                            @State.FilePath
+                        </p>
 
-                            <button
-                                class="text-white hover:underline"
-                                @onclick="Reset">
-                                Download another →
-                            </button>
-                        </div>
+                        <button
+                            class="w-full px-5 py-2 border border-neutral-700 text-gray-300 font-semibold hover:border-gray-400 hover:text-white transition-colors duration-75"
+                            @onclick="Reset">
+                            Close
+                        </button>
                     }
                 </div>
             }
