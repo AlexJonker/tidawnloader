@@ -37,7 +37,7 @@ public class Request
     private static DateTime _uptimeApiTime;
     private static readonly TimeSpan _uptimeApiExpiryTime = TimeSpan.FromHours(6);
 
-    public async Task<Track?> Make(string endpoint)
+    public async Task<T?> Make<T>(string endpoint)
     {
         if (_apis == null || (DateTime.UtcNow - _uptimeApiTime) > _uptimeApiExpiryTime)
         {
@@ -99,8 +99,17 @@ public class Request
                 if (doc.RootElement.TryGetProperty("detail", out _))
                     continue;
 
-                var data = doc.RootElement.GetProperty("data");
-                return JsonSerializer.Deserialize<Track>(data.GetRawText());
+                try
+                {
+                    var data = doc.RootElement.GetProperty("data");
+                    return JsonSerializer.Deserialize<T>(data.GetRawText());
+                }
+                catch (KeyNotFoundException)
+                {
+                    // Has to be done since the artist api returns it in a shitty way.
+                    var artist = doc.RootElement.GetProperty("artist");
+                    return JsonSerializer.Deserialize<T>(artist.GetRawText());
+                }
             }
             catch (Exception ex)
             {
@@ -108,6 +117,6 @@ public class Request
             }
         }
 
-        return null;
+        return default;
     }
 }

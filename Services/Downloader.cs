@@ -74,7 +74,7 @@ public class Downloader
             Message = $"Getting stream (id: {trackId})..."
         });
 
-        var track = await _request.Make($"info?id={Uri.EscapeDataString(trackId)}");
+        var track = await _request.Make<Track>($"info?id={Uri.EscapeDataString(trackId)}");
 
         if (track is null)
         {
@@ -86,7 +86,7 @@ public class Downloader
             return;
         }
 
-        var streamData = await _request.Make($"track?id={Uri.EscapeDataString(trackId)}&quality={Uri.EscapeDataString(track.AudioQuality ?? "")}");
+        var streamData = await _request.Make<Track>($"track?id={Uri.EscapeDataString(trackId)}&quality={Uri.EscapeDataString(track.AudioQuality ?? "")}");
 
         if (streamData is null)
         {

@@ -1,0 +1,92 @@
+@page "/download/artist"
+@using Tidawnloader.Services
+@using Tidawnloader.Models
+@inject Request Request
+
+<PageTitle>Artist Metadata</PageTitle>
+
+<div class="min-h-screen flex items-center justify-center px-4">
+
+    <div class="w-full max-w-xl space-y-8">
+        <div class="space-y-4">
+
+            @if (Artist is null)
+            {
+                <div class="space-y-4">
+                    <label class="text-sm text-gray-400">Artist ID</label>
+
+                    <div class="flex gap-2">
+                        <input
+                            class="flex-1 bg-neutral-950 border border-neutral-800 px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-neutral-700 disabled:opacity-50"
+                            @bind="artistId"
+                            @bind:event="oninput"
+                            @onkeydown="OnKeyDown"
+                            type="text"
+                            placeholder="1234567"
+                            disabled="@IsLoading"
+                        />
+
+                        <button
+                            class="px-5 py-2 bg-gray-200 text-black font-semibold hover:bg-white transition-colors duration-75 disabled:opacity-50 disabled:cursor-not-allowed"
+                            @onclick="GetMetadata"
+                            disabled="@(IsLoading || string.IsNullOrWhiteSpace(artistId))"
+                        >
+                            @(IsLoading ? "…" : "Get")
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="flex gap-4">
+                    @if (!string.IsNullOrEmpty(Artist.Picture))
+                    {
+                        <img
+                            src="@($"https://resources.tidal.com/images/{Artist.Picture.Replace("-", "/")}/750x750.jpg")"
+                            alt="Picture"
+                            class="w-24 h-24 object-cover"
+                        />
+                    }
+
+                    <div class="flex-1 space-y-1 min-w-0">
+                        <h2 class="text-2xl font-semibold text-gray-200 truncate">@Artist.Name</h2>
+                        <p class="text-sm text-gray-400 truncate">@Artist.Url</p>
+                        @foreach (var item in Artist.ArtistRoles)
+                        {
+                            <p class="text-sm text-gray-400 truncate">@item.Category</p>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string artistId { get; set; } = string.Empty;
+    private Artist? Artist { get; set; }
+    private bool IsLoading { get; set; }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !IsLoading && !string.IsNullOrWhiteSpace(artistId))
+            await GetMetadata();
+    }
+
+    private async Task GetMetadata()
+    {
+        if (IsLoading) return;
+
+        IsLoading = true;
+
+        Artist = await Request.Make<Artist>($"artist/?id={Uri.EscapeDataString(artistId.Trim())}");
+
+        IsLoading = false;
+    }
+
+    private void Reset()
+    {
+        artistId = string.Empty;
+        Artist = null;
+    }
+}
