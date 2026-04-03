@@ -55,6 +55,10 @@
                         <p class="text-sm text-gray-400 truncate">@Album.ReleaseDate</p>
                         <p class="text-sm text-gray-400 truncate">@Album.NumberOfTracks</p>
                         <p class="text-sm text-gray-400 truncate">@Album.Duration</p>
+                        @foreach (var item in Album.AllTracks)
+                        {
+                            <p class="text-sm text-gray-400 truncate">@item.Title (@item.Id)</p>
+                        }
                     </div>
                 </div>
             }

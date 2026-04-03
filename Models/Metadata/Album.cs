@@ -30,6 +30,16 @@ public class Album
 
     [JsonPropertyName("artists")]
     public List<Album_Artist> Artists { get; set; } = new();
+
+    [JsonPropertyName("items")]
+    public List<Album_Item> Items { get; set; } = new();
+
+    [JsonIgnore]
+    public List<Track> AllTracks =>
+        Items
+            .Select(item => item.Track)
+            .Where(track => track is not null)
+            .ToList();
 }
 
 public class Album_Artist
@@ -45,4 +55,12 @@ public class Album_Artist
 
     [JsonPropertyName("picture")]
     public string? Picture { get; set; }
+}
+public class Album_Item
+{
+    [JsonPropertyName("item")]
+    public Track Track { get; set; } = new();
+
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "";
 }
