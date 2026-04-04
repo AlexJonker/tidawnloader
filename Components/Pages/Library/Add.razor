@@ -1,0 +1,120 @@
+@page "/library/add"
+@using Tidawnloader.Services
+@using Tidawnloader.Models
+@inject Request Request
+
+<PageTitle>Artist Metadata</PageTitle>
+
+<div class="min-h-screen flex items-center justify-center px-4">
+
+    <div class="w-full max-w-xl space-y-8">
+        <div class="space-y-4">
+            @if (Artist is null)
+            {
+                <div class="space-y-4">
+                    <label class="text-sm text-gray-400">Artist ID</label>
+
+                    <div class="flex gap-2">
+                        <input
+                            class="flex-1 bg-neutral-950 border border-neutral-800 px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-neutral-700 disabled:opacity-50"
+                            @bind="artistId"
+                            @bind:event="oninput"
+                            @onkeydown="OnKeyDown"
+                            type="text"
+                            placeholder="1234567"
+                            disabled="@IsLoading"
+                        />
+
+                        <button
+                            class="px-5 py-2 bg-gray-200 text-black font-semibold hover:bg-white transition-colors duration-75 disabled:opacity-50 disabled:cursor-not-allowed"
+                            @onclick="GetMetadata"
+                            disabled="@(IsLoading || string.IsNullOrWhiteSpace(artistId))"
+                        >
+                            @(IsLoading ? "…" : "Get")
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="flex gap-4">
+                    @if (!string.IsNullOrEmpty(Artist.Picture))
+                    {
+                        <img
+                            src="@($"https://resources.tidal.com/images/{Artist.Picture.Replace("-", "/")}/750x750.jpg")"
+                            alt="Picture"
+                            class="w-24 h-24 object-cover"
+                        />
+                    }
+
+                    <div class="flex-1 space-y-1 min-w-0">
+                        <h2 class="text-2xl font-semibold text-gray-200 truncate">@Artist.Name</h2>
+                        <p class="text-sm text-gray-400 truncate">@Artist.Url</p>
+                        @foreach (var item in Artist.ArtistRoles)
+                        {
+                            <p class="text-sm text-gray-400 truncate">@item.Category</p>
+                        }
+                    </div>
+                </div>
+
+
+                @if (AlbumsAndTracks.HasValue)
+                {
+                    var albums = AlbumsAndTracks.Value.GetProperty("albums").GetProperty("items").EnumerateArray();
+                    foreach (var album in albums)
+                    {
+                        <div class="flex gap-3 bg-neutral-900 p-3 rounded mb-2">
+                            <img src="@($"https://resources.tidal.com/images/{album.GetProperty("cover").GetString()?.Replace("-", "/")}/1280x1280.jpg")" class="w-12 h-12 object-cover" />
+                            <div>
+                                <p class="text-sm text-gray-200">@album.GetProperty("title").GetString()</p>
+                                <p class="text-xs text-gray-500">@album.GetProperty("releaseDate").GetString()?.Substring(0, 4) · @album.GetProperty("type").GetString()</p> @* type is usefull to have because it can return album or single *@
+                            </div>
+                        </div>
+                    }
+                
+                    var tracks = AlbumsAndTracks.Value.GetProperty("tracks").EnumerateArray();
+                    foreach (var track in tracks)
+                    {
+                        <div class="flex gap-3 px-3 py-2 hover:bg-neutral-900 rounded">
+                            <span class="text-xs text-gray-600 w-5">@track.GetProperty("trackNumber").GetInt32()</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-200 truncate">@track.GetProperty("title").GetString()</p>
+                                <p class="text-xs text-gray-500 truncate">@track.GetProperty("album").GetProperty("title").GetString()</p>
+                            </div>
+                            <span class="text-xs text-gray-600">@(TimeSpan.FromSeconds(track.GetProperty("duration").GetInt32()).ToString(@"m\:ss"))</span>
+                        </div>
+                    }
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string artistId { get; set; } = string.Empty;
+    private Artist? Artist { get; set; }
+    private System.Text.Json.JsonElement? AlbumsAndTracks { get; set; }
+    private bool IsLoading { get; set; }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !IsLoading && !string.IsNullOrWhiteSpace(artistId))
+            await GetMetadata();
+    }
+
+    private async Task GetMetadata()
+    {
+        if (IsLoading) return;
+        IsLoading = true;
+        Artist = await Request.Make<Artist>($"artist/?id={Uri.EscapeDataString(artistId.Trim())}");
+        var raw = await Request.Make<System.Text.Json.JsonElement>($"artist/?f={Uri.EscapeDataString(artistId.Trim())}");
+        AlbumsAndTracks = raw;
+        IsLoading = false;
+    }
+
+    private void Reset()
+    {
+        artistId = string.Empty;
+        Artist = null;
+    }
+}

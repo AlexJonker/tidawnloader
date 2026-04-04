@@ -101,14 +101,18 @@ public class Request
 
                 try
                 {
-                    var data = doc.RootElement.GetProperty("data");
-                    return JsonSerializer.Deserialize<T>(data.GetRawText());
+                    // TODO: remove the data and artist ones and use RootElement for all.
+                    if (doc.RootElement.TryGetProperty("data", out var data))
+                        return JsonSerializer.Deserialize<T>(data.GetRawText());
+                    
+                    if (doc.RootElement.TryGetProperty("artist", out var artist))
+                        return JsonSerializer.Deserialize<T>(artist.GetRawText());
+                    
+                    return JsonSerializer.Deserialize<T>(doc.RootElement.GetRawText());
                 }
-                catch (KeyNotFoundException)
+                catch (Exception ex)
                 {
-                    // Has to be done since the artist api returns it in a shitty way.
-                    var artist = doc.RootElement.GetProperty("artist");
-                    return JsonSerializer.Deserialize<T>(artist.GetRawText());
+                    _logger.LogWarning(ex, "Failed to load data from {Mirror}", api);
                 }
             }
             catch (Exception ex)
