@@ -1,7 +1,11 @@
 @page "/library/add"
 @using Tidawnloader.Services
 @using Tidawnloader.Models
+@using Tidawnloader.Data
+@using System.Text.Json
 @inject Request Request
+@inject ApplicationDbContext Db
+@inject NavigationManager Nav
 
 <PageTitle>Add Artist</PageTitle>
 
@@ -57,6 +61,20 @@
                     </div>
                 </div>
 
+                <div class="flex gap-2 pt-4">
+                    <button
+                        class="px-5 py-2 bg-gray-200 text-black font-semibold hover:bg-white transition-colors duration-75"
+                        @onclick="SaveToLibrary"
+                    >
+                        Add to Library
+                    </button>
+                    <button
+                        class="px-5 py-2 border border-neutral-800 text-gray-400 hover:text-gray-200 hover:border-neutral-700 transition-colors duration-75"
+                        @onclick="Reset"
+                    >
+                        Reset
+                    </button>
+                </div>
 
                 @if (AlbumsAndTracks.HasValue)
                 {
@@ -110,6 +128,68 @@
         var raw = await Request.Make<System.Text.Json.JsonElement>($"artist/?f={Uri.EscapeDataString(artistId.Trim())}");
         AlbumsAndTracks = raw;
         IsLoading = false;
+    }
+
+    private async Task SaveToLibrary()
+    {
+        var dbArtist = new DbArtist
+        {
+            Id = Artist.Id,
+            Name = Artist.Name,
+            Url = Artist.Url,
+            Picture = Artist.Picture
+        };
+        Db.Artists.Add(dbArtist);
+    
+        if (AlbumsAndTracks.HasValue)
+        {
+            var root = AlbumsAndTracks.Value;
+            var albums = root.GetProperty("albums").GetProperty("items").EnumerateArray();
+            var tracks = root.GetProperty("tracks").EnumerateArray().ToList();
+    
+            int trackIndex = 0;
+    
+            foreach (var album in albums)
+            {
+                var dbAlbum = new DbAlbum
+                {
+                    Id = album.GetProperty("id").GetInt32(),
+                    Title = album.GetProperty("title").GetString(),
+                    Duration = album.GetProperty("duration").GetInt32(),
+                    NumberOfTracks = album.GetProperty("numberOfTracks").GetInt32(),
+                    ReleaseDate = album.GetProperty("releaseDate").GetString(),
+                    Url = album.GetProperty("url").GetString(),
+                    Cover = album.GetProperty("cover").GetString(),
+                    Type = album.GetProperty("type").GetString()
+                };
+                Db.Albums.Add(dbAlbum);
+    
+                while (trackIndex < tracks.Count)
+                {
+                    var trackJson = tracks[trackIndex];
+    
+                    var trackAlbumId = trackJson.GetProperty("album").GetProperty("id").GetInt32();
+                    if (trackAlbumId != dbAlbum.Id)
+                        break;
+    
+                    Db.Tracks.Add(new DbTrack
+                    {
+                        Id = trackJson.GetProperty("id").GetInt32(),
+                        Title = trackJson.GetProperty("title").GetString(),
+                        Duration = trackJson.GetProperty("duration").GetInt32(),
+                        TrackNumber = trackJson.GetProperty("trackNumber").GetInt32(),
+                        Url = trackJson.GetProperty("url").GetString(),
+                        AudioQuality = trackJson.GetProperty("audioQuality").GetString(),
+                        AlbumId = dbAlbum.Id,
+                        ArtistId = dbArtist.Id
+                    });
+                    trackIndex++;
+                }
+            }
+        }
+    
+        await Db.SaveChangesAsync();
+        Nav.NavigateTo("/library");
     }
 
     private void Reset()
