@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tidawnloader.Data;
 
@@ -11,9 +12,11 @@ using Tidawnloader.Data;
 namespace Tidawnloader.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260405215726_AddMissingStuffToAlbum")]
+    partial class AddMissingStuffToAlbum
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,11 +103,26 @@ namespace Tidawnloader.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("Bpm")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("Duration")
                         .HasColumnType("int");
+
+                    b.Property<string>("Key")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("KeyScale")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Manifest")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ManifestMimeType")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Title")
                         .IsRequired()

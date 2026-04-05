@@ -21,6 +21,8 @@ public class DbAlbum
 
     public string Cover { get; set; } = "";
 
+    public string Type { get; set; } = "";
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public List<DbTrack> Tracks { get; set; } = new();
