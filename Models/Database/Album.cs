@@ -23,6 +23,11 @@ public class DbAlbum
 
     public string Type { get; set; } = "";
 
+    public int ArtistId { get; set; }
+
+    [ForeignKey(nameof(ArtistId))]
+    public DbArtist? Artist { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public List<DbTrack> Tracks { get; set; } = new();

@@ -160,7 +160,8 @@
                     ReleaseDate = album.GetProperty("releaseDate").GetString(),
                     Url = album.GetProperty("url").GetString(),
                     Cover = album.GetProperty("cover").GetString(),
-                    Type = album.GetProperty("type").GetString()
+                    Type = album.GetProperty("type").GetString(),
+                    ArtistId = dbArtist.Id
                 };
                 Db.Albums.Add(dbAlbum);
     
