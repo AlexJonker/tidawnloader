@@ -6,6 +6,7 @@ namespace Tidawnloader.Models;
 public class DbTrack
 {
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)] // No auto increment since we use the tidal id here.
     public int Id { get; set; }
 
     public string Title { get; set; } = "";
