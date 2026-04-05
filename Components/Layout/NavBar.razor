@@ -23,12 +23,6 @@
         </a>
 
         <div class="hidden md:flex items-center gap-6">
-
-            <a href="/download"
-               class="text-sm text-zinc-400 hover:text-white transition-colors">
-                Download
-            </a>
-
             <a href="/library"
                class="text-sm text-zinc-400 hover:text-white transition-colors">
                 Library
@@ -53,12 +47,6 @@
 
     <div class="md:hidden overflow-hidden transition-all duration-300 @(IsMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0")">
         <div class="px-6 pb-6 pt-4 flex flex-col gap-4 bg-black/95 border-t border-white/10">
-
-            <a href="/download" @onclick="CloseMenu"
-               class="text-zinc-400 hover:text-white transition">
-                Download
-            </a>
-
             <a href="/library" @onclick="CloseMenu"
                class="text-zinc-400 hover:text-white transition">
                 Library
