@@ -10,4 +10,7 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<DbAlbum> Albums { get; set; }
+    public DbSet<DbArtist> Artists { get; set; }
+    public DbSet<DbTrack> Tracks { get; set; }
 }
