@@ -30,4 +30,8 @@ public class DbTrack
 
     [ForeignKey(nameof(ArtistId))]
     public DbArtist? Artist { get; set; }
+
+    public bool IsDownloaded { get; set; } = false;
+
+    public bool ShouldDownload { get; set; } = false;
 }
