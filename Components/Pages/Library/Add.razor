@@ -81,7 +81,7 @@
                     var albums = AlbumsAndTracks.Value.GetProperty("albums").GetProperty("items").EnumerateArray();
                     foreach (var album in albums)
                     {
-                        <div class="flex gap-3 bg-neutral-900 p-3 rounded mb-2">
+                        <div class="flex gap-3 bg-neutral-900 p-3 mb-2">
                             <img src="@($"https://resources.tidal.com/images/{album.GetProperty("cover").GetString()?.Replace("-", "/")}/1280x1280.jpg")" class="w-12 h-12 object-cover" />
                             <div>
                                 <p class="text-sm text-gray-200">@album.GetProperty("title").GetString()</p>
@@ -93,7 +93,7 @@
                     var tracks = AlbumsAndTracks.Value.GetProperty("tracks").EnumerateArray();
                     foreach (var track in tracks)
                     {
-                        <div class="flex gap-3 px-3 py-2 hover:bg-neutral-900 rounded">
+                        <div class="flex gap-3 px-3 py-2 hover:bg-neutral-900">
                             <span class="text-xs text-gray-600 w-5">@track.GetProperty("trackNumber").GetInt32()</span>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm text-gray-200 truncate">@track.GetProperty("title").GetString()</p>

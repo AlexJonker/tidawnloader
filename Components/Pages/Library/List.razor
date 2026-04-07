@@ -1,11 +1,48 @@
 @page "/library"
-
+@using Tidawnloader.Data
+@using Tidawnloader.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
 <PageTitle>Library</PageTitle>
 
-<div class="min-h-screen flex items-center justify-center px-4">
-    <div class="flex-1 flex flex-col items-center justify-center text-center">
-        <h1 class="text-6xl font-bold text-gray-300 mb-4">Your library is empty</h1>
-        <p class="text-gray-400 max-w-xl mb-8">Get started by adding an artist to your library.</p>
-        <a href="/library/add" class="bg-gray-200 text-black px-5 py-2 font-semibold hover:bg-white transition-colors duration-75 cursor-pointer">Add artist</a>
+@if (Artists.Any())
+{
+    <div class="min-h-screen px-4 py-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex mb-6 justify-between">
+                <p class="text-3xl font-bold text-gray-200">Artists</p>
+                <a href="/library/add" class="bg-white text-black px-4 py-2 font-semibold hover:bg-gray-200 transition-colors duration-75">Add</a>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1">
+                @foreach (var artist in Artists)
+                {
+                    <a href="/library/@artist.Id" class="relative aspect-square overflow-hidden block group">
+                        <img src="@($"https://resources.tidal.com/images/{artist.Picture.Replace("-", "/")}/750x750.jpg")"
+                             class="w-full h-full object-cover group-hover:scale-125 transition-transform duration-400" />
+                        <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent"></div>
+                        <p class="absolute bottom-0 left-0 right-0 px-2 py-2 text-sm font-medium text-white truncate">@artist.Name</p>
+                    </a>
+                }
+            </div>
+        </div>
     </div>
-</div>
+}
+else
+{
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="flex-1 flex flex-col items-center justify-center text-center">
+            <h1 class="text-6xl font-bold text-gray-300 mb-4">Your library is empty</h1>
+            <p class="text-gray-400 max-w-xl mb-8">Get started by adding an artist to your library.</p>
+            <a href="/library/add" class="bg-gray-200 text-black px-5 py-2 font-semibold hover:bg-white transition-colors duration-75 cursor-pointer">Add artist</a>
+        </div>
+    </div>
+}
+
+@code {
+    private List<DbArtist> Artists { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        Artists = Db.Artists.ToList();
+    }
+}
