@@ -172,18 +172,21 @@
                     var trackAlbumId = trackJson.GetProperty("album").GetProperty("id").GetInt32();
                     if (trackAlbumId != dbAlbum.Id)
                         break;
-    
-                    Db.Tracks.Add(new DbTrack
+
+                    if (trackJson.TryGetProperty("audioQuality", out var prop) && !string.IsNullOrEmpty(prop.GetString()))
                     {
-                        Id = trackJson.GetProperty("id").GetInt32(),
-                        Title = trackJson.GetProperty("title").GetString(),
-                        Duration = trackJson.GetProperty("duration").GetInt32(),
-                        TrackNumber = trackJson.GetProperty("trackNumber").GetInt32(),
-                        Url = trackJson.GetProperty("url").GetString(),
-                        AudioQuality = trackJson.GetProperty("audioQuality").GetString(),
-                        AlbumId = dbAlbum.Id,
-                        ArtistId = dbArtist.Id
-                    });
+                        Db.Tracks.Add(new DbTrack
+                        {
+                            Id = trackJson.GetProperty("id").GetInt32(),
+                            Title = trackJson.GetProperty("title").GetString(),
+                            Duration = trackJson.GetProperty("duration").GetInt32(),
+                            TrackNumber = trackJson.GetProperty("trackNumber").GetInt32(),
+                            Url = trackJson.GetProperty("url").GetString(),
+                            AudioQuality = trackJson.GetProperty("audioQuality").GetString(),
+                            AlbumId = dbAlbum.Id,
+                            ArtistId = dbArtist.Id
+                        });
+                    }
                     trackIndex++;
                 }
             }
