@@ -18,4 +18,6 @@ public class DbArtist
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public List<DbTrack> Tracks { get; set; } = new();
+
+    public List<DbAlbum> Albums { get; set; } = new();
 }
