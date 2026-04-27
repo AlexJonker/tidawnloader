@@ -1,4 +1,4 @@
-@page "/library/add"
+@page "/add"
 @using Tidawnloader.Services
 @using Tidawnloader.Models
 @using Tidawnloader.Data
@@ -190,7 +190,7 @@
         }
     
         await Db.SaveChangesAsync();
-        Nav.NavigateTo("/library");
+        Nav.NavigateTo("/");
     }
 
     private void Reset()
