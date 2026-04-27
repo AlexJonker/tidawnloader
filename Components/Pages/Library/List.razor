@@ -16,7 +16,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 @foreach (var artist in Artists)
                 {
-                    <a href="/library/@artist.Id" class="relative aspect-square overflow-hidden block group">
+                    <a href="/library/artist/@artist.Id" class="relative aspect-square overflow-hidden block group">
                         <img src="@($"https://resources.tidal.com/images/{artist.Picture.Replace("-", "/")}/750x750.jpg")"
                              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                         <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent"></div>
