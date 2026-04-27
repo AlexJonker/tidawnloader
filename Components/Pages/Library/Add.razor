@@ -110,7 +110,7 @@
 
 @code {
     private string artistId { get; set; } = string.Empty;
-    private Artist? Artist { get; set; }
+    private Tidawnloader.Models.Artist? Artist { get; set; }
     private System.Text.Json.JsonElement? AlbumsAndTracks { get; set; }
     private bool IsLoading { get; set; }
 
@@ -124,7 +124,7 @@
     {
         if (IsLoading) return;
         IsLoading = true;
-        Artist = await Request.Make<Artist>($"artist/?id={Uri.EscapeDataString(artistId.Trim())}");
+        Artist = await Request.Make<Tidawnloader.Models.Artist>($"artist/?id={Uri.EscapeDataString(artistId.Trim())}");
         var raw = await Request.Make<System.Text.Json.JsonElement>($"artist/?f={Uri.EscapeDataString(artistId.Trim())}");
         AlbumsAndTracks = raw;
         IsLoading = false;
