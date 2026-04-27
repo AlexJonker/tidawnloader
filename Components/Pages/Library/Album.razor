@@ -1,4 +1,4 @@
-@page "/library/album/{AlbumId:int}"
+@page "/library/album/{Id:int}"
 @using Tidawnloader.Data
 @using Tidawnloader.Models
 @using Microsoft.EntityFrameworkCore
@@ -29,20 +29,20 @@ else
 
         @foreach (var track in AlbumTracks)
         {
-            <p>@track.Title</p>
+            <a href="/library/track/@track.Id">@track.Title</a>
         }
     </div>
 }
 
 @code {
-    [Parameter] public int AlbumId { get; set; }
+    [Parameter] public int Id { get; set; }
 
     private DbAlbum? AlbumInfo { get; set; }
     private List<DbTrack> AlbumTracks { get; set; }
 
     protected override void OnInitialized()
     {
-        AlbumInfo = Db.Albums.FirstOrDefault(a => a.Id == AlbumId);
-        AlbumTracks = Db.Tracks.Where(t => t.AlbumId == AlbumId).ToList();
+        AlbumInfo = Db.Albums.FirstOrDefault(a => a.Id == Id);
+        AlbumTracks = Db.Tracks.Where(t => t.AlbumId == Id).ToList();
     }
 }

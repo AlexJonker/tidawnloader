@@ -1,0 +1,42 @@
+@page "/library/track/{Id:int}"
+@using Tidawnloader.Data
+@using Tidawnloader.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+<PageTitle>@(TrackInfo?.Title ?? "Track not found")</PageTitle>
+
+@if (TrackInfo is null)
+{
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="flex-1 flex flex-col items-center justify-center text-center">
+            <h1 class="text-6xl font-bold text-gray-300 mb-4">Track not found</h1>
+            <p class="text-gray-400 max-w-xl mb-8">The track you are looking for does not exist in your library.</p>
+            <a href="/library" class="bg-gray-200 text-black px-5 py-2 font-semibold hover:bg-white transition-colors duration-75 cursor-pointer">Back to library</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="min-h-screen flex items-center justify-center px-4 flex-col gap-6">
+        <img
+            src="@($"https://resources.tidal.com/images/{TrackInfo.Album.Cover.Replace("-", "/")}/750x750.jpg")"
+            alt="Picture"
+            class="w-48 h-48 object-cover"
+        />
+        <h1 class="text-4xl font-bold text-gray-200">@TrackInfo.Title</h1>
+        <a href="@TrackInfo.Url" target="_blank" class="text-sm text-gray-400">Tidal url</a>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private DbTrack? TrackInfo { get; set; }
+
+    protected override void OnInitialized()
+    {
+        TrackInfo = Db.Tracks
+            .Include(t => t.Album)
+            .FirstOrDefault(t => t.Id == Id);
+    }
+}
