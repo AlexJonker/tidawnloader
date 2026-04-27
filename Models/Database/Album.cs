@@ -17,8 +17,6 @@ public class DbAlbum
 
     public string ReleaseDate { get; set; } = "";
 
-    public string Url { get; set; } = "";
-
     public string Cover { get; set; } = "";
 
     public string Type { get; set; } = "";

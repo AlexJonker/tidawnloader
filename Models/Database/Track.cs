@@ -15,8 +15,6 @@ public class DbTrack
 
     public int TrackNumber { get; set; }
 
-    public string Url { get; set; } = "";
-
     public string AudioQuality { get; set; } = "";
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
