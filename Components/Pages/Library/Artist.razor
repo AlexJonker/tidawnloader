@@ -25,6 +25,20 @@ else
         />
         <h1 class="text-4xl font-bold text-gray-200">@ArtistInfo.Name</h1>
         <a href="@ArtistInfo.Url" target="_blank" class="text-sm text-gray-400">Tidal url</a>
+        <p>@ArtistAlbums.Count albums</p>
+
+        @foreach (var album in ArtistAlbums)
+        {
+            <a href="/library/album/@album.Id" class="relative aspect-square overflow-hidden block group">
+                <img src="@($"https://resources.tidal.com/images/{album.Cover.Replace("-", "/")}/320x320.jpg")"
+                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent"></div>
+                <p class="absolute bottom-0 left-0 right-0 px-2 py-2 text-sm font-medium text-white truncate">
+                    @album.Title
+                </p>
+            </a>
+
+        }
     </div>
 }
 
@@ -32,9 +46,11 @@ else
     [Parameter] public int Id { get; set; }
 
     private DbArtist? ArtistInfo { get; set; }
+    private List<DbAlbum> ArtistAlbums { get; set; }
 
     protected override void OnInitialized()
     {
         ArtistInfo = Db.Artists.FirstOrDefault(a => a.Id == Id);
+        ArtistAlbums = Db.Albums.Where(a => a.ArtistId == Id).ToList();
     }
 }
