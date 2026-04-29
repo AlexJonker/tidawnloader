@@ -104,10 +104,10 @@ public class Request
                     // TODO: remove the data and artist ones and use RootElement for all.
                     if (doc.RootElement.TryGetProperty("data", out var data))
                         return JsonSerializer.Deserialize<T>(data.GetRawText());
-                    
+
                     if (doc.RootElement.TryGetProperty("artist", out var artist))
                         return JsonSerializer.Deserialize<T>(artist.GetRawText());
-                    
+
                     return JsonSerializer.Deserialize<T>(doc.RootElement.GetRawText());
                 }
                 catch (Exception ex)

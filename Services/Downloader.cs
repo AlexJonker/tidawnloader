@@ -121,7 +121,7 @@ public class Downloader
                 var doc = XDocument.Parse(manifestJson);
                 var segmentTemplate = doc.Descendants()
                     .FirstOrDefault(x => x.Name.LocalName == "SegmentTemplate");
-                
+
                 if (segmentTemplate != null)
                 {
                     var mediaAttr = segmentTemplate.Attribute("media")?.Value;
@@ -130,7 +130,7 @@ public class Downloader
                         baseUrl = mediaAttr;
                     }
                 }
-                
+
                 if (baseUrl is null)
                 {
                     baseUrl = doc.Descendants()
