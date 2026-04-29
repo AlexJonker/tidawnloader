@@ -39,7 +39,7 @@ else
     [Parameter] public int Id { get; set; }
 
     private DbAlbum? AlbumInfo { get; set; }
-    private List<DbTrack> AlbumTracks { get; set; }
+    private List<DbTrack> AlbumTracks { get; set; } = [];
 
     protected override void OnInitialized()
     {

@@ -134,7 +134,7 @@
     {
         var dbArtist = new DbArtist
         {
-            Id = Artist.Id,
+            Id = Artist!.Id,
             Name = Artist.Name,
             Picture = Artist.Picture
         };
@@ -153,12 +153,12 @@
                 var dbAlbum = new DbAlbum
                 {
                     Id = album.GetProperty("id").GetInt32(),
-                    Title = album.GetProperty("title").GetString(),
+                    Title = album.GetProperty("title").GetString()!,
                     Duration = album.GetProperty("duration").GetInt32(),
                     NumberOfTracks = album.GetProperty("numberOfTracks").GetInt32(),
-                    ReleaseDate = album.GetProperty("releaseDate").GetString(),
-                    Cover = album.GetProperty("cover").GetString(),
-                    Type = album.GetProperty("type").GetString(),
+                    ReleaseDate = album.GetProperty("releaseDate").GetString()!,
+                    Cover = album.GetProperty("cover").GetString()!,
+                    Type = album.GetProperty("type").GetString()!,
                     ArtistId = dbArtist.Id
                 };
                 Db.Albums.Add(dbAlbum);
@@ -176,10 +176,10 @@
                         Db.Tracks.Add(new DbTrack
                         {
                             Id = trackJson.GetProperty("id").GetInt32(),
-                            Title = trackJson.GetProperty("title").GetString(),
+                            Title = trackJson.GetProperty("title").GetString()!,
                             Duration = trackJson.GetProperty("duration").GetInt32(),
                             TrackNumber = trackJson.GetProperty("trackNumber").GetInt32(),
-                            AudioQuality = trackJson.GetProperty("audioQuality").GetString(),
+                            AudioQuality = trackJson.GetProperty("audioQuality").GetString()!,
                             AlbumId = dbAlbum.Id,
                             ArtistId = dbArtist.Id
                         });

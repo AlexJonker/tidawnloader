@@ -19,7 +19,7 @@ else
 {
     <div class="min-h-screen flex items-center justify-center px-4 flex-col gap-6">
         <img
-            src="@($"https://resources.tidal.com/images/{TrackInfo.Album.Cover.Replace("-", "/")}/750x750.jpg")"
+            src="@($"https://resources.tidal.com/images/{TrackInfo.Album!.Cover.Replace("-", "/")}/750x750.jpg")"
             alt="Picture"
             class="w-48 h-48 object-cover"
         />

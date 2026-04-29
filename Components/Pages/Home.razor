@@ -17,7 +17,7 @@
                 @foreach (var artist in Artists)
                 {
                     <a href="/artist/@artist.Id" class="relative aspect-square overflow-hidden block group">
-                        <img src="@($"https://resources.tidal.com/images/{artist.Picture.Replace("-", "/")}/750x750.jpg")"
+                        <img src="@($"https://resources.tidal.com/images/{artist.Picture!.Replace("-", "/")}/750x750.jpg")"
                              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                         <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent"></div>
                         <p class="absolute bottom-0 left-0 right-0 px-2 py-2 text-sm font-medium text-white truncate">
