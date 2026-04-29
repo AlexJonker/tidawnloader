@@ -9,17 +9,17 @@ public class DbAlbum
     [DatabaseGenerated(DatabaseGeneratedOption.None)] // No auto increment since we use the tidal id here.
     public int Id { get; set; }
 
-    public string Title { get; set; } = "";
+    public string Title { get; set; }
 
     public int Duration { get; set; }
 
     public int NumberOfTracks { get; set; }
 
-    public string ReleaseDate { get; set; } = "";
+    public string ReleaseDate { get; set; }
 
-    public string Cover { get; set; } = "";
+    public string Cover { get; set; }
 
-    public string Type { get; set; } = "";
+    public string Type { get; set; }
 
     public int ArtistId { get; set; }
 

@@ -9,13 +9,13 @@ public class DbTrack
     [DatabaseGenerated(DatabaseGeneratedOption.None)] // No auto increment since we use the tidal id here.
     public int Id { get; set; }
 
-    public string Title { get; set; } = "";
+    public string Title { get; set; }
 
     public int Duration { get; set; }
 
     public int TrackNumber { get; set; }
 
-    public string AudioQuality { get; set; } = "";
+    public string AudioQuality { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

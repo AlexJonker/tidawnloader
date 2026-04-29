@@ -9,11 +9,11 @@ public class DbArtist
     [DatabaseGenerated(DatabaseGeneratedOption.None)] // No auto increment since we use the tidal id here.
     public int Id { get; set; }
 
-    public string Name { get; set; } = "";
+    public string Name { get; set; }
 
     public string? Picture { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
     public List<DbTrack> Tracks { get; set; } = new();
 
