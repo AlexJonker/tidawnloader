@@ -28,18 +28,19 @@ else
         <a href="https://monochrome.tf/artist/@ArtistInfo.Id" target="_blank" class="text-sm text-gray-400">Monochrome url</a>
         <p>@ArtistAlbums.Count albums</p>
 
-        @foreach (var album in ArtistAlbums)
-        {
-            <a href="/album/@album.Id" class="relative aspect-square overflow-hidden block group">
-                <img src="@($"https://resources.tidal.com/images/{album.Cover.Replace("-", "/")}/320x320.jpg")"
-                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent"></div>
-                <p class="absolute bottom-0 left-0 right-0 px-2 py-2 text-sm font-medium text-white truncate">
-                    @album.Title
-                </p>
-            </a>
-
-        }
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            @foreach (var album in ArtistAlbums)
+            {
+                <a href="/album/@album.Id" class="relative aspect-square overflow-hidden block group">
+                    <img src="@($"https://resources.tidal.com/images/{album.Cover.Replace("-", "/")}/320x320.jpg")"
+                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                    <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent"></div>
+                    <p class="absolute bottom-0 left-0 right-0 px-2 py-2 text-sm font-medium text-white truncate">
+                        @album.Title
+                    </p>
+                </a>
+            }
+        </div>
     </div>
 }
 
