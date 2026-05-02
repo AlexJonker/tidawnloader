@@ -8,6 +8,6 @@
     "build:css": "npx @tailwindcss/cli -i wwwroot/app.css -o wwwroot/tailwind.css",
     "build:minified:css": "npx @tailwindcss/cli -i wwwroot/app.css -o wwwroot/tailwind.css --minify",
     "watch:css": "npx @tailwindcss/cli -i wwwroot/app.css -o wwwroot/tailwind.css --watch",
-    "update-deps": "dotnet tool install --global dotnet-outdated-tool && dotnet outdated --upgrade --recursive --version-lock Major && npm upgrade && npm i"
+    "update-deps": "dotnet tool install --global dotnet-outdated-tool && dotnet outdated --upgrade --recursive --version-lock Major && npx npm-check-updates -u && npm update && npm i"
   }
 }
