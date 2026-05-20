@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "@tailwindcss/cli": "^4.2.4",
-    "concurrently": "^9.2.1"
+    "@tailwindcss/cli": "^4.3.0",
+    "concurrently": "^10.0.1"
   },
   "scripts": {
     "dev": "concurrently --raw \"npm run watch:css\" \"dotnet watch\"",
