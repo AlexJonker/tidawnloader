@@ -16,7 +16,7 @@ services:
       retries: 3
 
   tidawnloader:
-    image: ghcr.io/alexjonker/tidawnloader:main
+    image: ghcr.io/alexjonker/tidawnloader:latest
     container_name: tidawnloader
     restart: unless-stopped
     depends_on:
