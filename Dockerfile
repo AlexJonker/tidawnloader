@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install curl -y \
     && curl -fsSL https://deb.nodesource.com/setup_25.x | bash - \
     && apt-get install nodejs -y \
