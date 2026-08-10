@@ -1,0 +1,140 @@
+@page "/download"
+@using Tidawnloader.Services
+@inject Downloader Downloader
+
+<PageTitle>Download</PageTitle>
+
+<div class="min-h-screen flex items-center justify-center px-4">
+
+    <div class="w-full max-w-xl space-y-8">
+        <div class="space-y-4">
+            <form class="space-y-4" @onsubmit="StartDownload" @onsubmit:preventDefault>
+                <label class="text-sm text-gray-400">Track ID</label>
+
+                <div class="flex gap-2">
+                    <input
+                        class="flex-1 bg-neutral-950 border border-neutral-800 px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-neutral-700 disabled:opacity-50"
+                        type="text"
+                        placeholder="491206012"
+                        @bind="TrackId"
+                        @bind:after="InvalidateInput"
+                        disabled="@IsDownloading"
+                    />
+
+                    <button
+                        type="submit"
+                        class="px-5 py-2 bg-gray-200 text-black font-semibold hover:bg-white transition-colors duration-75 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled="@IsDownloading"
+                    >
+                        @(IsDownloading ? "…" : "Download")
+                    </button>
+                </div>
+
+                @if (InvalidTrackId)
+                {
+                    <p class="text-sm text-red-400">Please enter a numeric track id.</p>
+                }
+            </form>
+
+            @if (State is not null && State.Status != DownloadStatus.Idle)
+            {
+                <div class="pt-4 space-y-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-gray-400">@StatusLabel</span>
+                        @if (State.ProgressPercent > 0 && State.Status == DownloadStatus.Downloading)
+                        {
+                            <span class="text-sm text-gray-500">@State.ProgressPercent.ToString("F0")%</span>
+                        }
+                    </div>
+
+                    <div class="w-full h-1.5 bg-neutral-900 overflow-hidden">
+                        <div class="h-full bg-gray-200 transition-all duration-200"
+                             style="width: @(ProgressWidth)%"></div>
+                    </div>
+
+                    <p class="text-sm text-gray-400">@State.Message</p>
+
+                    @if (State.Status == DownloadStatus.Done && !string.IsNullOrEmpty(State.FilePath))
+                    {
+                        <p class="text-sm text-gray-400 break-all">Saved to @State.FilePath</p>
+                    }
+
+                    @if (State.Status == DownloadStatus.Failed)
+                    {
+                        <p class="text-sm text-red-400 break-all">@State.Error</p>
+                        <button
+                            class="px-5 py-2 border border-neutral-800 text-gray-400 hover:text-gray-200 hover:border-neutral-700 transition-colors duration-75 cursor-pointer"
+                            @onclick="Reset">
+                            Download another
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string TrackId { get; set; } = "";
+    private bool InvalidTrackId { get; set; }
+    private bool IsDownloading { get; set; }
+    private DownloadState? State { get; set; }
+
+    private string StatusLabel => State?.Status switch
+    {
+        DownloadStatus.Resolving => "Resolving",
+        DownloadStatus.GettingStream => "Getting stream",
+        DownloadStatus.Downloading => "Downloading",
+        DownloadStatus.Done => "Done",
+        DownloadStatus.Failed => "Failed",
+        _ => ""
+    };
+
+    private double ProgressWidth => State?.Status switch
+    {
+        DownloadStatus.Resolving or DownloadStatus.GettingStream => 15,
+        DownloadStatus.Downloading => State.ProgressPercent,
+        DownloadStatus.Done => 100,
+        _ => 0
+    };
+
+    private void InvalidateInput()
+    {
+        var isValid = !string.IsNullOrWhiteSpace(TrackId) &&
+                      int.TryParse(TrackId.Trim(), out _);
+        InvalidTrackId = !isValid;
+    }
+
+    private async Task StartDownload()
+    {
+        InvalidateInput();
+        if (InvalidTrackId || IsDownloading) return;
+
+        var trackId = TrackId!.Trim();
+
+        IsDownloading = true;
+        State = new DownloadState { Status = DownloadStatus.Resolving };
+        var progress = new Progress<DownloadState>(state =>
+        {
+            State = state;
+            StateHasChanged();
+        });
+
+        try
+        {
+            await Downloader.DownloadAsync(trackId, progress);
+        }
+        finally
+        {
+            IsDownloading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void Reset()
+    {
+        TrackId = "";
+        State = null;
+        InvalidTrackId = false;
+    }
+}

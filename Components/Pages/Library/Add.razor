@@ -109,7 +109,7 @@
 </div>
 
 @code {
-    private string artistId { get; set; } = string.Empty;
+    private string artistId { get; set; } = "";
     private Tidawnloader.Models.Artist? Artist { get; set; }
     private System.Text.Json.JsonElement? AlbumsAndTracks { get; set; }
     private bool IsLoading { get; set; }
@@ -195,7 +195,7 @@
 
     private void Reset()
     {
-        artistId = string.Empty;
+        artistId = "";
         Artist = null;
     }
 }

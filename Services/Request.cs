@@ -16,70 +16,14 @@ public class Request
         _logger = logger;
     }
 
-    private static readonly string[] UptimeApiUrls =
+    private static readonly string[] HiFiUrls =
     [
-        "https://tidal-uptime.jiffy-puffs-1j.workers.dev/",
-        "https://tidal-uptime.props-76styles.workers.dev/",
+        "https://lol.samidy.workers.dev",
     ];
-
-    private static readonly string[] FallbackApis =
-    [
-        "https://api.monochrome.tf",
-        "https://hifi-one.spotisaver.net",
-        "https://hifi-two.spotisaver.net",
-        "https://eu-central.monochrome.tf",
-        "https://us-west.monochrome.tf",
-        "https://monochrome-api.samidy.com",
-        "https://tidal.kinoplus.online",
-    ];
-
-    private static List<string>? _apis;
-    private static DateTime _uptimeApiTime;
-    private static readonly TimeSpan _uptimeApiExpiryTime = TimeSpan.FromHours(6);
 
     public async Task<T?> Make<T>(string endpoint)
     {
-        if (_apis == null || (DateTime.UtcNow - _uptimeApiTime) > _uptimeApiExpiryTime)
-        {
-            foreach (var url in UptimeApiUrls.OrderBy(_ => Random.Shared.Next()))
-            {
-                try
-                {
-                    var resp = await _http.CreateClient("Default").GetAsync(url);
-                    _logger.LogDebug($"Fetching uptime API from {url}");
-
-                    if (!resp.IsSuccessStatusCode) continue;
-
-                    using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
-                    if (!doc.RootElement.TryGetProperty("api", out var apiArray)) continue;
-
-                    var instances = apiArray.EnumerateArray()
-                        .Select(item => item.TryGetProperty("url", out var u) ? u.GetString()
-                                      : item.ValueKind == JsonValueKind.String ? item.GetString()
-                                      : null)
-                        .Where(s => s != null)
-                        .Select(s => s!)
-                        .ToList();
-
-                    if (instances.Count == 0) continue;
-                    _apis = instances;
-                    _uptimeApiTime = DateTime.UtcNow;
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to fetch from {Url}", url);
-                }
-            }
-
-            if (_apis == null)
-            {
-                _logger.LogWarning("Failed to load instances from all uptime APIs, using fallbacks");
-                _apis = FallbackApis.ToList();
-            }
-        }
-
-        foreach (var api in _apis)
+        foreach (var api in HiFiUrls)
         {
             try
             {

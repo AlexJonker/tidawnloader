@@ -34,6 +34,9 @@ public class Track
     [JsonPropertyName("manifestMimeType")]
     public string? ManifestMimeType { get; set; }
 
+    [JsonPropertyName("assetPresentation")]
+    public string? AssetPresentation { get; set; }
+
 
     // Ezra pookie bear
     [JsonPropertyName("bpm")]
