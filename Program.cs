@@ -40,7 +40,7 @@ builder.Services.AddScoped<Downloader>();
 
 var app = builder.Build();
 
-// Delete dir folder every boot to clean up possible remaining files.
+// Delete temp dir every boot to clean up possible remaining files.
 if (Directory.Exists(builder.Configuration["TempPath"])) Directory.Delete(builder.Configuration["TempPath"]!, true);
 
 using (var scope = app.Services.CreateScope())
