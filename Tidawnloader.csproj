@@ -11,6 +11,6 @@
 
   <ItemGroup>
     <PackageReference Include="FFMpegCore" Version="5.4.0" />
-    <PackageReference Include="Microting.EntityFrameworkCore.MySql" Version="10.0.8" />
+    <PackageReference Include="Microting.EntityFrameworkCore.MySql" Version="10.0.10" />
   </ItemGroup>
 </Project>
