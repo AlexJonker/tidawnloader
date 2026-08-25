@@ -16,7 +16,68 @@
             @if (Artist is null)
             {
                 <div class="space-y-4">
-                    <label class="text-sm text-gray-400">Artist ID</label>
+                    <label class="text-sm text-gray-400">Search artist</label>
+
+                    <div class="flex gap-2">
+                        <input
+                            class="flex-1 bg-neutral-950 border border-neutral-800 px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-neutral-700 disabled:opacity-50"
+                            @bind="searchQuery"
+                            @bind:event="oninput"
+                            @onkeydown="OnSearchKeyDown"
+                            type="text"
+                            placeholder="Linkin Park"
+                            disabled="@IsLoading"
+                        />
+
+                        <button
+                            class="px-5 py-2 bg-gray-200 text-black font-semibold hover:bg-white transition-colors duration-75 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            @onclick="SearchArtists"
+                            disabled="@(IsLoading || string.IsNullOrWhiteSpace(searchQuery))"
+                        >
+                            @(IsLoading ? "…" : "Search")
+                        </button>
+                    </div>
+
+                    @if (SearchResults is not null)
+                    {
+                        @if (SearchResults.Items.Any())
+                        {
+                            <div class="border border-neutral-800 divide-y divide-neutral-800">
+                                @foreach (var result in SearchResults.Items)
+                                {
+                                    <button
+                                        class="w-full flex gap-3 items-center px-3 py-2 text-left hover:bg-neutral-900 transition-colors duration-75 cursor-pointer disabled:opacity-50"
+                                        @onclick="() => SelectArtist(result)"
+                                        disabled="@IsLoading"
+                                    >
+                                        @if (!string.IsNullOrEmpty(result.Picture))
+                                        {
+                                            <img
+                                                src="@($"https://resources.tidal.com/images/{result.Picture.Replace("-", "/")}/750x750.jpg")"
+                                                alt="Picture"
+                                                class="w-10 h-10 object-cover shrink-0"
+                                            />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-10 h-10 bg-neutral-800 shrink-0"></div>
+                                        }
+                                        <span class="text-sm text-gray-200 truncate">@result.Name</span>
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-sm text-gray-400">No results found.</p>
+                        }
+                    }
+
+                    <div class="flex items-center gap-3 pt-4">
+                        <div class="flex-1 h-px bg-neutral-800"></div>
+                        <span class="text-xs text-gray-500">or enter an artist ID</span>
+                        <div class="flex-1 h-px bg-neutral-800"></div>
+                    </div>
 
                     <div class="flex gap-2">
                         <input
@@ -25,7 +86,7 @@
                             @bind:event="oninput"
                             @onkeydown="OnKeyDown"
                             type="text"
-                            placeholder="1234567"
+                            placeholder="14123"
                             disabled="@IsLoading"
                         />
 
@@ -110,14 +171,38 @@
 
 @code {
     private string artistId { get; set; } = "";
+    private string searchQuery { get; set; } = "";
     private Tidawnloader.Models.Artist? Artist { get; set; }
     private System.Text.Json.JsonElement? AlbumsAndTracks { get; set; }
+    private ArtistSearchResults? SearchResults { get; set; }
     private bool IsLoading { get; set; }
 
     private async Task OnKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter" && !IsLoading && !string.IsNullOrWhiteSpace(artistId))
             await GetMetadata();
+    }
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !IsLoading && !string.IsNullOrWhiteSpace(searchQuery))
+            await SearchArtists();
+    }
+
+    private async Task SearchArtists()
+    {
+        if (IsLoading) return;
+        IsLoading = true;
+        var response = await Request.Make<ArtistSearchResponse>($"search/?a={Uri.EscapeDataString(searchQuery.Trim())}");
+        SearchResults = response?.Artists;
+        IsLoading = false;
+    }
+
+    private async Task SelectArtist(ArtistSearchItem result)
+    {
+        artistId = result.Id.ToString();
+        SearchResults = null;
+        await GetMetadata();
     }
 
     private async Task GetMetadata()
@@ -196,6 +281,7 @@
     private void Reset()
     {
         artistId = "";
+        SearchResults = null;
         Artist = null;
     }
 }
