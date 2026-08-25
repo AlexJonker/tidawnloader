@@ -44,7 +44,7 @@ dotnet user-secrets set "Db:user" "root"
 ```
 
 > [!WARNING]
-> User secrets are stored **unencrypted** in `~/.microsoft/usersecrets/<UserSecretsId>/secrets.json` (Linux/macOS) or `%APPDATA%\Microsoft\UserSecrets\<UserSecretsId>\secrets.json` (Windows).
+> User secrets are stored unencrypted in `~/.microsoft/usersecrets/09d59150-7919-456b-9d77-07ded5ba5acd/secrets.json` (Linux/macOS) or `%APPDATA%\Microsoft\UserSecrets\09d59150-7919-456b-9d77-07ded5ba5acd\secrets.json` (Windows).
 
 Run tidawnloader:
 ```bash
