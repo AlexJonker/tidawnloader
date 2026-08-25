@@ -26,25 +26,51 @@ else
             />
             <div class="flex flex-col items-center md:items-start text-center md:text-left gap-2">
                 <h1 class="text-4xl font-bold text-gray-200">@ArtistInfo.Name</h1>
-                <p>@ArtistAlbums.Count albums</p>
+                <p>@Albums.Count albums, @Singles.Count singles</p>
                 <a href="https://tidal.com/artist/@ArtistInfo.Id" target="_blank" class="text-sm text-gray-400">Tidal url</a>
                 <a href="https://monochrome.tf/artist/@ArtistInfo.Id" target="_blank" class="text-sm text-gray-400">Monochrome url</a>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            @foreach (var album in ArtistAlbums)
-            {
-                <a href="/album/@album.Id" class="relative aspect-square overflow-hidden block group">
-                    <img src="@($"https://resources.tidal.com/images/{album.Cover.Replace("-", "/")}/320x320.jpg")"
-                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                    <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent"></div>
-                    <p class="absolute bottom-0 left-0 right-0 px-2 py-2 text-sm font-medium text-white truncate">
-                        @album.Title
-                    </p>
-                </a>
-            }
-        </div>
+        @if (Albums.Count > 0)
+        {
+            <div>
+                <h2 class="text-xl font-semibold text-gray-300 mb-3">Albums</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    @foreach (var album in Albums)
+                    {
+                        <a href="/album/@album.Id" class="relative aspect-square overflow-hidden block group">
+                            <img src="@($"https://resources.tidal.com/images/{album.Cover.Replace("-", "/")}/320x320.jpg")"
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                            <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent"></div>
+                            <p class="absolute bottom-0 left-0 right-0 px-2 py-2 text-sm font-medium text-white truncate">
+                                @album.Title
+                            </p>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (Singles.Count > 0)
+        {
+            <div>
+                <h2 class="text-xl font-semibold text-gray-300 mb-3">Singles</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    @foreach (var single in Singles)
+                    {
+                        <a href="/album/@single.Id" class="relative aspect-square overflow-hidden block group">
+                            <img src="@($"https://resources.tidal.com/images/{single.Cover.Replace("-", "/")}/320x320.jpg")"
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                            <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent"></div>
+                            <p class="absolute bottom-0 left-0 right-0 px-2 py-2 text-sm font-medium text-white truncate">
+                                @single.Title
+                            </p>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
     </div>
 }
 
@@ -52,11 +78,15 @@ else
     [Parameter] public int Id { get; set; }
 
     private DbArtist? ArtistInfo { get; set; }
-    private List<DbAlbum> ArtistAlbums { get; set; } = [];
+    private List<DbAlbum> Albums { get; set; } = [];
+    private List<DbAlbum> Singles { get; set; } = [];
 
     protected override void OnInitialized()
     {
         ArtistInfo = Db.Artists.FirstOrDefault(a => a.Id == Id);
-        ArtistAlbums = Db.Albums.Where(a => a.ArtistId == Id).ToList();
+        var allAlbums = Db.Albums.Where(a => a.ArtistId == Id)
+            .OrderByDescending(a => a.ReleaseDate).ToList();
+        Albums = allAlbums.Where(a => a.Type == "ALBUM").ToList();
+        Singles = allAlbums.Where(a => a.Type == "SINGLE").ToList();
     }
 }
