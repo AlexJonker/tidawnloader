@@ -124,10 +124,11 @@
 
                 <div class="flex gap-2 pt-4">
                     <button
-                        class="px-5 py-2 bg-gray-200 text-black font-semibold hover:bg-white transition-colors duration-75 cursor-pointer"
+                        class="px-5 py-2 bg-gray-200 text-black font-semibold hover:bg-white transition-colors duration-75 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         @onclick="SaveToLibrary"
+                        disabled="@AlreadyInLibrary"
                     >
-                        Add to Library
+                        @(AlreadyInLibrary ? "Already in library" : "Add to Library")
                     </button>
                     <button
                         class="px-5 py-2 border border-neutral-800 text-gray-400 hover:text-gray-200 hover:border-neutral-700 transition-colors duration-75 cursor-pointer"
@@ -176,6 +177,7 @@
     private System.Text.Json.JsonElement? AlbumsAndTracks { get; set; }
     private ArtistSearchResults? SearchResults { get; set; }
     private bool IsLoading { get; set; }
+    private bool AlreadyInLibrary { get; set; }
 
     private async Task OnKeyDown(KeyboardEventArgs e)
     {
@@ -210,6 +212,7 @@
         if (IsLoading) return;
         IsLoading = true;
         Artist = await Request.Make<Tidawnloader.Models.Artist>($"artist/?id={Uri.EscapeDataString(artistId.Trim())}");
+        AlreadyInLibrary = Artist is not null && Db.Artists.Any(a => a.Id == Artist.Id);
         var raw = await Request.Make<System.Text.Json.JsonElement>($"artist/?f={Uri.EscapeDataString(artistId.Trim())}");
         AlbumsAndTracks = raw;
         IsLoading = false;
@@ -283,5 +286,6 @@
         artistId = "";
         SearchResults = null;
         Artist = null;
+        AlreadyInLibrary = false;
     }
 }
