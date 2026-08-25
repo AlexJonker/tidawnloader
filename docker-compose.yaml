@@ -4,7 +4,10 @@ services:
     image: mariadb:latest
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: changeme
+      MARIADB_RANDOM_ROOT_PASSWORD: true
+      MARIADB_DATABASE: tidawnloader
+      MARIADB_USER: tidawnloader
+      MARIADB_PASSWORD: changeme
       TZ: Europe/Amsterdam
     volumes:
       - /DATA/AppData/tidawnloader/mariadb:/var/lib/mysql
@@ -32,5 +35,5 @@ services:
       - DownloadPath=/Music
       - StoragePath=/Storage
       - DB__host=mariadb
-      - DB__user=root
+      - DB__user=tidawnloader
       - DB__password=changeme
